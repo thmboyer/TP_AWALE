@@ -39,13 +39,20 @@ int main(int argc, char **argv) {
   }
 
   /* petit initialisation */
-  listen(sockfd, 2);
+  listen(sockfd, 2); // Le backlog correspond au nombre de sockets en file
+                     // d'attente, pas au nombre de sockets acceptées.
 
   /* attend la connection d'un client */
   clilen = sizeof(cli_addr);
+
   while (1) {
-    newsockfd =
-        accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t *)&clilen);
+    // Protection contre le ddos à faire avec un nombre max d'enfants qu'on peut
+    // avoir, on le vérifie avant d'accepter une nouvelle demande.
+    if ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr,
+                            (socklen_t *)&clilen)) == -1) {
+      printf("Could not accept a connexion !\n");
+      continue;
+    }
     pid = fork();
     if (pid == 0) {
       close(sockfd);
@@ -77,9 +84,6 @@ int main(int argc, char **argv) {
         printf("%c", c);
       }
     } else {
-      close(newsockfd); // Ca fait que le listen marche pas bien, il faudrait
-                        // avoir un compteur de clients et gérer quand les
-                        // clients se ferment
     }
   }
 
