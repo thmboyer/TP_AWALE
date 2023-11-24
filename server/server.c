@@ -7,6 +7,7 @@
 #include "server.h"
 
 static void app(void) {
+  // On récupère le FD de la socket du server.
   SOCKET sock = init_connection();
   char buffer[BUF_SIZE];
   /* the index for the array */
