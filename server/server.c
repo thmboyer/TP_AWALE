@@ -20,7 +20,8 @@ static void app(void) {
 
   ActiveClients clients; // INFO: We should not need it since we have a
                          // linked list with the Clients struct.
-  clients.first_client = NULL;
+  clients.first = NULL;
+  clients.last = NULL;
   clients.nb = 0;
 
   fd_set rdfs; // Set of file descriptors. Before select : all the file
@@ -30,7 +31,7 @@ static void app(void) {
   while (1)
 
   {
-    Client *client_iterator = clients.first_client;
+    Client *client_iterator = clients.first;
     FD_ZERO(&rdfs); // Clears the set
 
     FD_SET(STDIN_FILENO, &rdfs); // Adds STDIN to the set
@@ -92,8 +93,8 @@ static void app(void) {
       FD_SET(csock, &rdfs); // We add the client socket to the set
 
     } else { // In this case at least a client socket is readable.
-      client_iterator = clients.first_client;
-      while ((client_iterator = client_iterator->next)) {
+      client_iterator = clients.first;
+      while (client_iterator) {
         if (FD_ISSET(client_iterator->socket, &rdfs)) {
           int c = read_client(client_iterator->socket, buffer);
           if (c == 0) { // The client disconnected
@@ -105,8 +106,11 @@ static void app(void) {
           } else { // INFO: This is where we go into handle_incomming_package();
             send_message_to_all_clients(clients, *client_iterator, buffer, 0);
           }
-          break;
+          break; // ISSUE: This can cause starvation if the first process keeps
+                 // talking
+                 //  ?
         }
+        client_iterator = client_iterator->next;
       }
     }
   }
@@ -117,7 +121,7 @@ static void app(void) {
 
 static void clear_clients(ActiveClients *clients) {
   clients->nb = 0;
-  Client *client_iterator = clients->first_client;
+  Client *client_iterator = clients->first;
   while (client_iterator) {
     closesocket(client_iterator->socket);
     Client *previous = client_iterator;
@@ -128,10 +132,9 @@ static void clear_clients(ActiveClients *clients) {
 
 static void send_message_to_all_clients(ActiveClients clients, Client sender,
                                         const char *buffer, char from_server) {
-  int i = 0;
   char message[BUF_SIZE];
-  Client *client_iterator = clients.first_client;
-  while ((client_iterator = client_iterator->next)) {
+  Client *client_iterator = clients.first;
+  while (client_iterator) {
     message[0] = 0;
     {
       /* we don't send message to the sender */
@@ -144,6 +147,7 @@ static void send_message_to_all_clients(ActiveClients clients, Client sender,
         write_client(client_iterator->socket, message);
       }
     }
+    client_iterator = client_iterator->next;
   }
 }
 

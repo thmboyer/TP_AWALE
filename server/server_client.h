@@ -18,7 +18,8 @@ typedef struct Client {
 } Client;
 
 typedef struct ActiveClients {
-  Client *first_client;
+  Client *first;
+  Client *last;
   int nb;
 } ActiveClients;
 
