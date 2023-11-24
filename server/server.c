@@ -98,6 +98,7 @@ static void app(void) {
         if (FD_ISSET(client_iterator->socket, &rdfs)) {
           int c = read_client(client_iterator->socket, buffer);
           if (c == 0) { // The client disconnected
+            printf("Client disconnected !");
             closesocket(client_iterator->socket);
             remove_client(&clients, client_iterator);
             strncpy(buffer, client_iterator->username, BUF_SIZE - 1);

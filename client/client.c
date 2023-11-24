@@ -30,8 +30,7 @@ static void app(const char *address, const char *name) {
 
     /* something from standard input : i.e keyboard */
     if (FD_ISSET(STDIN_FILENO, &rdfs)) {
-      fgets(buffer, BUF_SIZE - 1, stdin);
-      {
+      if (fgets(buffer, BUF_SIZE - 1, stdin)) {
         char *p = NULL;
         p = strstr(buffer, "\n");
         if (p != NULL) {
@@ -40,6 +39,8 @@ static void app(const char *address, const char *name) {
           /* fclean */
           buffer[BUF_SIZE - 1] = 0;
         }
+      } else {
+        break;
       }
       write_server(sock, buffer);
     } else if (FD_ISSET(sock, &rdfs)) {
