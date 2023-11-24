@@ -1,7 +1,7 @@
-#if not defined SERVER_CLIENT_H
+#ifndef SERVER_CLIENT_H
 #define SERVER_CLIENT_H
 
-#include "game.h";
+#include "game.h"
 
 typedef struct Client {
   int fd;
@@ -10,9 +10,12 @@ typedef struct Client {
   Game *game;
   struct Client *opponent;
   struct Client *next;
+  int connected;              // Bool to know if the client is connected yet.
+  char expected_password[20]; // expected password of client if he is in the
+                              // database.
 } Client;
 
-typedef struct Connected_Clients {
+typedef struct ConnectedClients {
   Client *first_client;
   int nb;
 } Connected_Clients;

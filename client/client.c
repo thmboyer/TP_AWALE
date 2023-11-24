@@ -1,53 +1,118 @@
-/* Client pour les sockets
- *    socket_client ip_server port
- */
-
+#include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 
-int main(int argc, char** argv )
-{ 
-  int    sockfd,newsockfd,clilen,chilpid,ok,nleft,nbwriten;
-  char c;
-  struct sockaddr_in cli_addr,serv_addr;
+#include "client.h"
 
-  if (argc!=3) {printf ("usage  socket_client server port\n");exit(0);}
- 
- 
-  /*
-   *  partie client 
-   */
-  printf ("client starting\n");  
+static void app(const char *address, const char *name) {
+  SOCKET sock = init_connection(address);
+  char buffer[BUF_SIZE];
 
-  /* initialise la structure de donnee */
-  bzero((char*) &serv_addr, sizeof(serv_addr));
-  serv_addr.sin_family       = AF_INET;
-  serv_addr.sin_addr.s_addr  = inet_addr(argv[1]);
-  serv_addr.sin_port         = htons(atoi(argv[2]));
-  
-  /* ouvre le socket */
-  if ((sockfd=socket(AF_INET,SOCK_STREAM,0))<0)
-    {printf("socket error\n");exit(0);}
-  
-  /* effectue la connection */
-  if (connect(sockfd,(struct sockaddr*)&serv_addr,sizeof(serv_addr))<0)
-    {printf("socket error\n");exit(0);}
-    
-  
-  /* repete dans le socket tout ce qu'il entend */
-  while (1) {c=getchar();write (sockfd,&c,1);}
-  
-  
-  /*  attention il s'agit d'une boucle infinie 
-   *  le socket n'est jamais ferme !
-   */
-   
-   return 1;
+  fd_set rdfs;
 
+  /* send our name */
+  write_server(sock, name);
+
+  while (1) {
+    FD_ZERO(&rdfs);
+
+    /* add STDIN_FILENO */
+    FD_SET(STDIN_FILENO, &rdfs);
+
+    /* add the socket */
+    FD_SET(sock, &rdfs);
+
+    if (select(sock + 1, &rdfs, NULL, NULL, NULL) == -1) {
+      perror("select()");
+      exit(errno);
+    }
+
+    /* something from standard input : i.e keyboard */
+    if (FD_ISSET(STDIN_FILENO, &rdfs)) {
+      fgets(buffer, BUF_SIZE - 1, stdin);
+      {
+        char *p = NULL;
+        p = strstr(buffer, "\n");
+        if (p != NULL) {
+          *p = 0;
+        } else {
+          /* fclean */
+          buffer[BUF_SIZE - 1] = 0;
+        }
+      }
+      write_server(sock, buffer);
+    } else if (FD_ISSET(sock, &rdfs)) {
+      int n = read_server(sock, buffer);
+      /* server down */
+      if (n == 0) {
+        printf("Server disconnected !\n");
+        break;
+      }
+      puts(buffer);
+    }
+  }
+
+  end_connection(sock);
+}
+
+static int init_connection(const char *address) {
+  SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+  SOCKADDR_IN sin = {0};
+  struct hostent *hostinfo;
+
+  if (sock == INVALID_SOCKET) {
+    perror("socket()");
+    exit(errno);
+  }
+
+  hostinfo = gethostbyname(address);
+  if (hostinfo == NULL) {
+    fprintf(stderr, "Unknown host %s.\n", address);
+    exit(EXIT_FAILURE);
+  }
+
+  sin.sin_addr = *(IN_ADDR *)hostinfo->h_addr;
+  sin.sin_port = htons(PORT);
+  sin.sin_family = AF_INET;
+
+  if (connect(sock, (SOCKADDR *)&sin, sizeof(SOCKADDR)) == SOCKET_ERROR) {
+    perror("connect()");
+    exit(errno);
+  }
+
+  return sock;
+}
+
+static void end_connection(int sock) { closesocket(sock); }
+
+static int read_server(SOCKET sock, char *buffer) {
+  int n = 0;
+
+  if ((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0) {
+    perror("recv()");
+    exit(errno);
+  }
+
+  buffer[n] = 0;
+
+  return n;
+}
+
+static void write_server(SOCKET sock, const char *buffer) {
+  if (send(sock, buffer, strlen(buffer), 0) < 0) {
+    perror("send()");
+    exit(errno);
+  }
+}
+
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    printf("Usage : %s [address] [pseudo]\n", argv[0]);
+    return EXIT_FAILURE;
+  }
+
+  app(argv[1], argv[2]);
+
+  return EXIT_SUCCESS;
 }

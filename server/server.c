@@ -1,93 +1,188 @@
-#include <arpa/inet.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 
-int board[12];
+#include "server.h"
+
+static void app(void) {
+  SOCKET sock = init_connection();
+  char buffer[BUF_SIZE];
+  /* the index for the array */
+  int actual = 0;
+  int max = sock;
+  /* an array for all clients */
+  Client clients[MAX_CLIENTS];
+
+  fd_set rdfs;
+  while (1)
+
+  {
+    int i = 0;
+    FD_ZERO(&rdfs);
+
+    /* add STDIN_FILENO */
+    FD_SET(STDIN_FILENO, &rdfs);
+
+    /* add the connection socket */
+    FD_SET(sock, &rdfs);
+
+    /* add socket of each client */
+    for (i = 0; i < actual; i++) {
+      FD_SET(clients[i].fd, &rdfs);
+    }
+
+    // Bloquant
+    if (select(max + 1, &rdfs, NULL, NULL, NULL) == -1) {
+      perror("select()");
+      exit(errno);
+    }
+
+    /* something from standard input : i.e keyboard */
+    if (FD_ISSET(STDIN_FILENO, &rdfs)) {
+      /* stop process when type on keyboard */
+      break;
+    } else if (FD_ISSET(sock, &rdfs)) {
+      /* new client */
+      SOCKADDR_IN csin = {0};
+      size_t sinsize = sizeof csin;
+      int csock = accept(sock, (SOCKADDR *)&csin, (socklen_t *)&sinsize);
+      if (csock == SOCKET_ERROR) {
+        perror("accept()");
+        continue;
+      }
+
+      /* after connecting the client sends its name */
+      if (read_client(csock, buffer) == -1) {
+        /* disconnected */
+        continue;
+      }
+
+      /* what is the new maximum fd ? */
+      max = csock > max ? csock : max;
+
+      FD_SET(csock, &rdfs);
+
+      Client c = {csock};
+      // FIX: Needs to be changed, changed it to stop warning me but it was
+      // c.username, buffer, BUF_SIZE
+      strncpy(c.username, buffer, 9);
+      clients[actual] = c;
+      actual++;
+    } else {
+      int i = 0;
+      for (i = 0; i < actual; i++) {
+        /* a client is talking */
+        if (FD_ISSET(clients[i].fd, &rdfs)) {
+          Client client = clients[i];
+          int c = read_client(clients[i].fd, buffer);
+          /* client disconnected */
+          if (c == 0) {
+            closesocket(clients[i].fd);
+            remove_client(clients, i, &actual);
+            strncpy(buffer, client.username, BUF_SIZE - 1);
+            strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
+            send_message_to_all_clients(clients, client, actual, buffer, 1);
+          } else {
+            send_message_to_all_clients(clients, client, actual, buffer, 0);
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  clear_clients(clients, actual);
+  end_connection(sock);
+}
+
+static void clear_clients(Client *clients, int actual) {
+  int i = 0;
+  for (i = 0; i < actual; i++) {
+    closesocket(clients[i].fd);
+  }
+}
+
+static void remove_client(Client *clients, int to_remove, int *actual) {
+  /* we remove the client in the array */
+  memmove(clients + to_remove, clients + to_remove + 1,
+          (*actual - to_remove - 1) * sizeof(Client));
+  /* number client - 1 */
+  (*actual)--;
+}
+
+static void send_message_to_all_clients(Client *clients, Client sender,
+                                        int actual, const char *buffer,
+                                        char from_server) {
+  int i = 0;
+  char message[BUF_SIZE];
+  message[0] = 0;
+  for (i = 0; i < actual; i++) {
+    /* we don't send message to the sender */
+    if (sender.fd != clients[i].fd) {
+      if (from_server == 0) {
+        strncpy(message, sender.username, BUF_SIZE - 1);
+        strncat(message, " : ", sizeof message - strlen(message) - 1);
+      }
+      strncat(message, buffer, sizeof message - strlen(message) - 1);
+      write_client(clients[i].fd, message);
+    }
+  }
+}
+
+static int init_connection(void) {
+  SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+  SOCKADDR_IN sin = {0};
+
+  if (sock == INVALID_SOCKET) {
+    perror("socket()");
+    exit(errno);
+  }
+
+  sin.sin_addr.s_addr = htonl(INADDR_ANY);
+  sin.sin_port = htons(PORT);
+  sin.sin_family = AF_INET;
+
+  if (bind(sock, (SOCKADDR *)&sin, sizeof sin) == SOCKET_ERROR) {
+    perror("bind()");
+    exit(errno);
+  }
+
+  if (listen(sock, MAX_CLIENTS) == SOCKET_ERROR) {
+    perror("listen()");
+    exit(errno);
+  }
+
+  return sock;
+}
+
+static void end_connection(int sock) { closesocket(sock); }
+
+static int read_client(SOCKET sock, char *buffer) {
+  int n = 0;
+
+  if ((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0) {
+    perror("recv()");
+    /* if recv error we disonnect the client */
+    n = 0;
+  }
+
+  buffer[n] = 0;
+
+  return n;
+}
+
+static void write_client(SOCKET sock, const char *buffer) {
+  if (send(sock, buffer, strlen(buffer), 0) < 0) {
+    perror("send()");
+    exit(errno);
+  }
+}
 
 int main(int argc, char **argv) {
-  int sockfd, newsockfd, clilen, chilpid, ok, nleft, nbwriten, pid;
-  struct sockaddr_in cli_addr, serv_addr;
-  char c;
 
-  if (argc != 2) {
-    printf("usage: socket_server port\n");
-    exit(0);
-  }
+  app();
 
-  printf("server starting...\n");
-
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (sockfd < 0) {
-    printf("impossible d'ouvrir le socket\n");
-    exit(0);
-  }
-
-  bzero((char *)&serv_addr, sizeof(serv_addr));
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(atoi(argv[1]));
-
-  if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-    printf("impossible de faire le bind\n");
-    exit(0);
-  }
-
-  listen(sockfd, 2); // Le backlog correspond au nombre de sockets en file
-                     // d'attente, pas au nombre de sockets acceptées.
-
-  clilen = sizeof(cli_addr);
-
-  while (1) {
-    // Protection contre le ddos à faire avec un nombre max d'enfants qu'on peut
-    // avoir, on le vérifie avant d'accepter une nouvelle demande.
-    if ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr,
-                            (socklen_t *)&clilen)) == -1) {
-      printf("Could not accept a connexion !\n");
-      continue;
-    }
-    pid = fork();
-    if (pid == 0) {
-      close(sockfd);
-
-      if (newsockfd < 0) {
-        printf("accept error\n");
-        exit(0);
-      }
-      printf("connection accepted\n");
-
-      while (1)
-      // SMART !
-      {
-        int read_value;
-        while ((read_value = read(newsockfd, &c, 1)) != 1) {
-          if (!read_value) {
-            printf("Client disconnected !\nClosing the server...\n");
-            close(sockfd);
-            close(newsockfd);
-            exit(0);
-          }
-        }
-        if (c == EOF) {
-          printf("Client ended the exchange !\nClosing the socket...\n");
-          close(sockfd);
-          close(newsockfd);
-          exit(0);
-        }
-        printf("%c", c);
-      }
-    } else {
-      close(newsockfd);
-    }
-  }
-
-  /*  attention il s'agit d'une boucle infinie
-   *  le socket nn'est jamais ferme !
-   */
-
-  return 1;
+  return EXIT_SUCCESS;
 }

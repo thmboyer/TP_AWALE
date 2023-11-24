@@ -1,4 +1,4 @@
-#if not defined MOVES_H
+#ifndef MOVES_H
 #define MOVES_H
 
 typedef struct Move {

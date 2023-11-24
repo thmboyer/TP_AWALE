@@ -1,7 +1,7 @@
-#if not defined GAME_H
+#ifndef GAME_H
 #define GAME_H
 
-#include "moves.h";
+#include "moves.h"
 
 typedef struct Game {
   int board[12];
