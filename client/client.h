@@ -18,7 +18,7 @@ typedef struct in_addr IN_ADDR;
 #define CRLF "\r\n"
 #define PORT 7777
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 256
 
 static void app(const char *address, const char *name);
 static int init_connection(const char *address);

@@ -6,62 +6,74 @@
 
 #include "server.h"
 
+// INFO: See infos for places where the code will have to change because of our
+// data strcture choices
 static void app(void) {
-  // On récupère le FD de la socket du server.
-  SOCKET sock = init_connection();
-  char buffer[BUF_SIZE];
-  /* the index for the array */
-  int actual = 0;
-  int max = sock;
-  /* an array for all clients */
-  Client clients[MAX_CLIENTS];
+  SOCKET sock = init_connection(); // On récupère le FD de la socket du server.
 
-  fd_set rdfs;
+  char buffer[BUF_SIZE]; // Char buffer for a message.
+
+  int actual = 0; // INFO: The number of clients, we should not need it since we
+                  // have a linked list
+
+  int max = sock; // The filedescriptor with the highest number, needed for the
+                  // select() call
+
+  Client clients[MAX_CLIENTS]; // INFO: We should not need it since we have a
+                               // linked list with the Clients struct.
+
+  fd_set rdfs; // Set of file descriptors. Before select : all the file
+               // descriptors. After select: only the file descriptors that
+               // are ready for reading.
+
   while (1)
 
   {
     int i = 0;
-    FD_ZERO(&rdfs);
+    FD_ZERO(&rdfs); // Clears the set
 
-    /* add STDIN_FILENO */
-    FD_SET(STDIN_FILENO, &rdfs);
+    FD_SET(STDIN_FILENO, &rdfs); // Adds STDIN to the set
 
-    /* add the connection socket */
-    FD_SET(sock, &rdfs);
+    FD_SET(sock, &rdfs); // Adds the server socket to the set
 
-    /* add socket of each client */
-    for (i = 0; i < actual; i++) {
+    for (i = 0; i < actual; i++) { // Adds the socket of every client
       FD_SET(clients[i].fd, &rdfs);
     }
 
-    // Bloquant
-    if (select(max + 1, &rdfs, NULL, NULL, NULL) == -1) {
+    if (select(max + 1, &rdfs, NULL, NULL, NULL) ==
+        -1) { // Blocks until there is a readable socket, clears all the sockets
+              // from the set except the readable ones
       perror("select()");
       exit(errno);
     }
 
-    /* something from standard input : i.e keyboard */
-    if (FD_ISSET(STDIN_FILENO, &rdfs)) {
-      /* stop process when type on keyboard */
+    if (FD_ISSET(STDIN_FILENO,
+                 &rdfs)) { // If stdin is readable, we stop the app
       break;
-    } else if (FD_ISSET(sock, &rdfs)) {
-      /* new client */
+    } else if (FD_ISSET(sock, &rdfs)) { // If the server socket is readable,
+                                        // there is a new client
       SOCKADDR_IN csin = {0};
       size_t sinsize = sizeof csin;
-      int csock = accept(sock, (SOCKADDR *)&csin, (socklen_t *)&sinsize);
+      int csock = accept(
+          sock, (SOCKADDR *)&csin,
+          (socklen_t *)&sinsize); // Accepts the connection from the new client
       if (csock == SOCKET_ERROR) {
         perror("accept()");
         continue;
       }
 
-      /* after connecting the client sends its name */
-      if (read_client(csock, buffer) == -1) {
-        /* disconnected */
-        continue;
+      if (read_client(csock, buffer) ==
+          -1) { // WARNING: I think it waits for the client to send his username
+                // but I am not sure. If it is that way, the client app should
+                // require the client to specify his username in execution
+                // command
+
+        continue; // He disconnected
       }
 
-      /* what is the new maximum fd ? */
-      max = csock > max ? csock : max;
+      max = csock > max ? csock : max; // We update the max value if we need to
+
+      // BUG: Breakpoint where I finished reading
 
       FD_SET(csock, &rdfs);
 
@@ -133,7 +145,7 @@ static void send_message_to_all_clients(Client *clients, Client sender,
 }
 
 static int init_connection(void) {
-  SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+  SOCKET sock = socket(AF_INET, SOCK_STREAM, 0); // Socket IPV4 TCP
   SOCKADDR_IN sin = {0};
 
   if (sock == INVALID_SOCKET) {
@@ -141,16 +153,19 @@ static int init_connection(void) {
     exit(errno);
   }
 
-  sin.sin_addr.s_addr = htonl(INADDR_ANY);
-  sin.sin_port = htons(PORT);
-  sin.sin_family = AF_INET;
+  sin.sin_addr.s_addr = htonl(INADDR_ANY); // Toutes les interfaces du PC
+  sin.sin_port = htons(PORT);              // PORT définit dans server.h
+  sin.sin_family = AF_INET;                // IPV4
 
-  if (bind(sock, (SOCKADDR *)&sin, sizeof sin) == SOCKET_ERROR) {
+  if (bind(sock, (SOCKADDR *)&sin, sizeof sin) ==
+      SOCKET_ERROR) { // Bind la socket aux paramètres définits.
     perror("bind()");
     exit(errno);
   }
 
-  if (listen(sock, MAX_CLIENTS) == SOCKET_ERROR) {
+  if (listen(sock, MAX_CLIENTS) ==
+      SOCKET_ERROR) { // Marks the socket as passive socket. This call is non
+                      // blocking
     perror("listen()");
     exit(errno);
   }
@@ -161,15 +176,14 @@ static int init_connection(void) {
 static void end_connection(int sock) { closesocket(sock); }
 
 static int read_client(SOCKET sock, char *buffer) {
+  // WARNING: Changed this function a bit because I think there was an errror
   int n = 0;
 
   if ((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0) {
     perror("recv()");
-    /* if recv error we disonnect the client */
-    n = 0;
   }
 
-  buffer[n] = 0;
+  buffer[n >= 0 ? n : 0] = '\0';
 
   return n;
 }
