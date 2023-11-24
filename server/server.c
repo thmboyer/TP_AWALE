@@ -6,6 +6,7 @@
 
 #include "options.h"
 #include "server.h"
+#include "server_client.h"
 
 // INFO: See infos for places where the code will have to change because of our
 // data strcture choices
@@ -14,14 +15,14 @@ static void app(void) {
 
   char buffer[BUF_SIZE]; // Char buffer for a message.
 
-  int actual = 0; // INFO: The number of clients, we should not need it since we
-                  // have a linked list
-
   int max = sock; // The filedescriptor with the highest number, needed for the
                   // select() call
 
-  Client clients[MAX_CLIENTS]; // INFO: We should not need it since we have a
-                               // linked list with the Clients struct.
+  ActiveClients clients; // INFO: We should not need it since we have a
+                         // linked list with the Clients struct.
+  clients.first = NULL;
+  clients.last = NULL;
+  clients.nb = 0;
 
   fd_set rdfs; // Set of file descriptors. Before select : all the file
                // descriptors. After select: only the file descriptors that
@@ -30,15 +31,16 @@ static void app(void) {
   while (1)
 
   {
-    int i = 0;
+    Client *client_iterator = clients.first;
     FD_ZERO(&rdfs); // Clears the set
 
     FD_SET(STDIN_FILENO, &rdfs); // Adds STDIN to the set
 
     FD_SET(sock, &rdfs); // Adds the server socket to the set
 
-    for (i = 0; i < actual; i++) { // Adds the socket of every client
-      FD_SET(clients[i].socket, &rdfs);
+    while (client_iterator) { // Adds the socket of every client
+      FD_SET(client_iterator->socket, &rdfs);
+      client_iterator = client_iterator->next;
     }
 
     if (select(max + 1, &rdfs, NULL, NULL, NULL) ==
@@ -72,76 +74,81 @@ static void app(void) {
         continue; // He disconnected
       }
 
+      Client *c = malloc(sizeof(Client));
+      c->socket = csock;
+      c->game = NULL;
+      c->opponent = NULL;
+      c->connected = 0;
+      c->next = NULL;
+      c->previous = NULL;
+
+      strncpy(c->username, buffer, USERNAME_SIZE);
+
+      if (!add_client(&clients, c)) {
+        continue;
+      }
+
       max = csock > max ? csock : max; // We update the max value if we need to
 
       FD_SET(csock, &rdfs); // We add the client socket to the set
 
-      Client c;
-      c.socket = csock;
-
-      strncpy(c.username, buffer, USERNAME_SIZE);
-
-      clients[actual] =
-          c; // WARNING: should change into an update of the linked list
-      actual++;
-
     } else { // In this case at least a client socket is readable.
-      int i = 0;
-      for (i = 0; i < actual;
-           i++) { // WARNING: we should go threw the linked list
-        if (FD_ISSET(clients[i].socket, &rdfs)) {
-          Client client = clients[i];
-          int c = read_client(clients[i].socket, buffer);
+      client_iterator = clients.first;
+      while (client_iterator) {
+        if (FD_ISSET(client_iterator->socket, &rdfs)) {
+          int c = read_client(client_iterator->socket, buffer);
           if (c == 0) { // The client disconnected
-            closesocket(clients[i].socket);
-            remove_client(clients, i, &actual);
-            strncpy(buffer, client.username, BUF_SIZE - 1);
+            printf("Client disconnected !");
+            closesocket(client_iterator->socket);
+            remove_client(&clients, client_iterator);
+            strncpy(buffer, client_iterator->username, BUF_SIZE - 1);
             strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
-            send_message_to_all_clients(clients, client, actual, buffer, 1);
+            send_message_to_all_clients(clients, *client_iterator, buffer, 1);
           } else { // INFO: This is where we go into handle_incomming_package();
-            send_message_to_all_clients(clients, client, actual, buffer, 0);
+            send_message_to_all_clients(clients, *client_iterator, buffer, 0);
           }
-          break;
+          break; // ISSUE: This can cause starvation if the first process keeps
+                 // talking
+                 //  ?
         }
+        client_iterator = client_iterator->next;
       }
     }
   }
 
-  clear_clients(clients, actual);
+  clear_clients(&clients);
   end_connection(sock);
 }
 
-static void clear_clients(Client *clients, int actual) {
-  int i = 0;
-  for (i = 0; i < actual; i++) {
-    closesocket(clients[i].socket);
+static void clear_clients(ActiveClients *clients) {
+  clients->nb = 0;
+  Client *client_iterator = clients->first;
+  while (client_iterator) {
+    closesocket(client_iterator->socket);
+    Client *previous = client_iterator;
+    client_iterator = client_iterator->next;
+    free(previous);
   }
 }
 
-static void remove_client(Client *clients, int to_remove, int *actual) {
-  /* we remove the client in the array */
-  memmove(clients + to_remove, clients + to_remove + 1,
-          (*actual - to_remove - 1) * sizeof(Client));
-  /* number client - 1 */
-  (*actual)--;
-}
-
-static void send_message_to_all_clients(Client *clients, Client sender,
-                                        int actual, const char *buffer,
-                                        char from_server) {
-  int i = 0;
+static void send_message_to_all_clients(ActiveClients clients, Client sender,
+                                        const char *buffer, char from_server) {
   char message[BUF_SIZE];
-  message[0] = 0;
-  for (i = 0; i < actual; i++) {
-    /* we don't send message to the sender */
-    if (sender.socket != clients[i].socket) {
-      if (from_server == 0) {
-        strncpy(message, sender.username, BUF_SIZE - 1);
-        strncat(message, " : ", sizeof message - strlen(message) - 1);
+  Client *client_iterator = clients.first;
+  while (client_iterator) {
+    message[0] = 0;
+    {
+      /* we don't send message to the sender */
+      if (sender.socket != client_iterator->socket) {
+        if (from_server == 0) {
+          strncpy(message, sender.username, BUF_SIZE - 1);
+          strncat(message, " : ", sizeof message - strlen(message) - 1);
+        }
+        strncat(message, buffer, sizeof message - strlen(message) - 1);
+        write_client(client_iterator->socket, message);
       }
-      strncat(message, buffer, sizeof message - strlen(message) - 1);
-      write_client(clients[i].socket, message);
     }
+    client_iterator = client_iterator->next;
   }
 }
 

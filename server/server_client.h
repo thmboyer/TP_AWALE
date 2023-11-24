@@ -11,14 +11,19 @@ typedef struct Client {
   Game *game;
   struct Client *opponent;
   struct Client *next;
+  struct Client *previous;
   int connected;              // Bool to know if the client is connected yet.
   char expected_password[20]; // expected password of client if he is in the
                               // database.
 } Client;
 
-typedef struct ConnectedClients {
-  Client *first_client;
+typedef struct ActiveClients {
+  Client *first;
+  Client *last;
   int nb;
-} Connected_Clients;
+} ActiveClients;
+
+int add_client(ActiveClients *, Client *);
+void remove_client(ActiveClients *, Client *);
 
 #endif
