@@ -2,10 +2,11 @@
 #define SERVER_CLIENT_H
 
 #include "game.h"
+#include "options.h"
 
 typedef struct Client {
-  int fd;
-  char username[10];
+  int socket;
+  char username[USERNAME_SIZE];
   char bio[100];
   Game *game;
   struct Client *opponent;

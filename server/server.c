@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "options.h"
 #include "server.h"
 
 // INFO: See infos for places where the code will have to change because of our
@@ -37,7 +38,7 @@ static void app(void) {
     FD_SET(sock, &rdfs); // Adds the server socket to the set
 
     for (i = 0; i < actual; i++) { // Adds the socket of every client
-      FD_SET(clients[i].fd, &rdfs);
+      FD_SET(clients[i].socket, &rdfs);
     }
 
     if (select(max + 1, &rdfs, NULL, NULL, NULL) ==
@@ -63,41 +64,41 @@ static void app(void) {
       }
 
       if (read_client(csock, buffer) ==
-          -1) { // WARNING: I think it waits for the client to send his username
-                // but I am not sure. If it is that way, the client app should
-                // require the client to specify his username in execution
-                // command
+          0) { // WARNING: I think it waits for the client to send his username
+               // but I am not sure. If it is that way, the client app should
+               // require the client to specify his username in execution
+               // command
 
         continue; // He disconnected
       }
 
       max = csock > max ? csock : max; // We update the max value if we need to
 
-      // BUG: Breakpoint where I finished reading
+      FD_SET(csock, &rdfs); // We add the client socket to the set
 
-      FD_SET(csock, &rdfs);
+      Client c;
+      c.socket = csock;
 
-      Client c = {csock};
-      // FIX: Needs to be changed, changed it to stop warning me but it was
-      // c.username, buffer, BUF_SIZE
-      strncpy(c.username, buffer, 9);
-      clients[actual] = c;
+      strncpy(c.username, buffer, USERNAME_SIZE);
+
+      clients[actual] =
+          c; // WARNING: should change into an update of the linked list
       actual++;
-    } else {
+
+    } else { // In this case at least a client socket is readable.
       int i = 0;
-      for (i = 0; i < actual; i++) {
-        /* a client is talking */
-        if (FD_ISSET(clients[i].fd, &rdfs)) {
+      for (i = 0; i < actual;
+           i++) { // WARNING: we should go threw the linked list
+        if (FD_ISSET(clients[i].socket, &rdfs)) {
           Client client = clients[i];
-          int c = read_client(clients[i].fd, buffer);
-          /* client disconnected */
-          if (c == 0) {
-            closesocket(clients[i].fd);
+          int c = read_client(clients[i].socket, buffer);
+          if (c == 0) { // The client disconnected
+            closesocket(clients[i].socket);
             remove_client(clients, i, &actual);
             strncpy(buffer, client.username, BUF_SIZE - 1);
             strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
             send_message_to_all_clients(clients, client, actual, buffer, 1);
-          } else {
+          } else { // INFO: This is where we go into handle_incomming_package();
             send_message_to_all_clients(clients, client, actual, buffer, 0);
           }
           break;
@@ -113,7 +114,7 @@ static void app(void) {
 static void clear_clients(Client *clients, int actual) {
   int i = 0;
   for (i = 0; i < actual; i++) {
-    closesocket(clients[i].fd);
+    closesocket(clients[i].socket);
   }
 }
 
@@ -133,13 +134,13 @@ static void send_message_to_all_clients(Client *clients, Client sender,
   message[0] = 0;
   for (i = 0; i < actual; i++) {
     /* we don't send message to the sender */
-    if (sender.fd != clients[i].fd) {
+    if (sender.socket != clients[i].socket) {
       if (from_server == 0) {
         strncpy(message, sender.username, BUF_SIZE - 1);
         strncat(message, " : ", sizeof message - strlen(message) - 1);
       }
       strncat(message, buffer, sizeof message - strlen(message) - 1);
-      write_client(clients[i].fd, message);
+      write_client(clients[i].socket, message);
     }
   }
 }
@@ -176,14 +177,14 @@ static int init_connection(void) {
 static void end_connection(int sock) { closesocket(sock); }
 
 static int read_client(SOCKET sock, char *buffer) {
-  // WARNING: Changed this function a bit because I think there was an errror
   int n = 0;
 
   if ((n = recv(sock, buffer, BUF_SIZE - 1, 0)) < 0) {
     perror("recv()");
+    n = 0;
   }
 
-  buffer[n >= 0 ? n : 0] = '\0';
+  buffer[n] = '\0';
 
   return n;
 }
