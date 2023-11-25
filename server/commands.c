@@ -36,7 +36,7 @@ void send_invite(ActiveClients clients, Client *sender,
       strcat(message, sender->username);
       strcat(message, " type /fight ");
       strcat(message, sender->username);
-      strcat(message, "to accept the request");
+      strcat(message, " to accept the request");
       write_client(recipient->socket, message);
       strcpy(message, "Invite sent to ");
       strcat(message, recipient->username);
