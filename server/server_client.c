@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "options.h"
 #include "server_client.h"
 
 int add_client(ActiveClients *clients, Client *client) {

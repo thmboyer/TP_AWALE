@@ -1,10 +1,12 @@
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "client.h"
+#include "client_package.h"
 
 static void app(const char *address, const char *name) {
   SOCKET sock = init_connection(address);
@@ -12,7 +14,8 @@ static void app(const char *address, const char *name) {
 
   fd_set rdfs; // set of file descriptors
 
-  assert(strlen(name) < USERNAME_SIZE && "username length must be <= 10");
+  assert(strlen(name) < USERNAME_SIZE &&
+         "username length must be <= USERNAME_SIZE");
 
   write_server(sock, name); // Sending username to the server
 
@@ -93,33 +96,6 @@ static int read_server(SOCKET sock, char *buffer) {
   return n;
 }
 
-static int process(char *buffer) {
-  char *it = buffer;
-
-  if (*it++ != '/') {
-    char *p = NULL;
-    p = strstr(buffer, "\n"); // looks for \n
-    if (p != NULL) {
-      *p = 0; // Replaces it with '\0'
-    } else {
-      buffer[BUF_SIZE - 1] = 0;
-    }
-    return 1;
-  } else {
-    char command[6];
-    strncpy(command, it, 5);
-    command[5] = '\0';
-
-    if (!strcmp(command, "users")) {
-      strcpy(buffer, "/000");
-      return 1;
-    } else {
-      puts("Command does not exist");
-      return 0;
-    }
-  }
-  return 0;
-}
 static void write_server(SOCKET sock, const char *buffer) {
   if (send(sock, buffer, strlen(buffer), 0) < 0) {
     perror("send()");
