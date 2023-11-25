@@ -14,4 +14,5 @@ typedef struct Game {
   char winner[10];
 } Game;
 
+void init_game(char *player_a, char *player_b);
 #endif

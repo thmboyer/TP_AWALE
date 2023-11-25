@@ -91,6 +91,17 @@ void remove_invites_from_client(Client *client) {
   client->invites->first = NULL;
 }
 
+Invite *get_invite(const Client *sender, const Client *recipient) {
+  Invite *it_invite = sender->invites->first;
+  while (it_invite) {
+    if (!strcmp(it_invite->recipient->username, recipient->username)) {
+      return it_invite;
+    }
+    it_invite = it_invite->next;
+  }
+  return NULL;
+}
+
 Client *find_client_by_username(const ActiveClients clients,
                                 const char *username) {
   Client *client_iterator = clients.first;
