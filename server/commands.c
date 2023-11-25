@@ -21,14 +21,16 @@ void get_client_list(ActiveClients active_clients, Client *client,
 void send_invite(ActiveClients clients, Client *sender,
                  const char *recipient_username, char *message) {
   Client *recipient = find_client_by_username(clients, recipient_username);
-  Invite *invite_from_receiver;
   if (recipient == NULL) {
     strcpy(message, "The user you asked for is not connected.");
     write_client(sender->socket, message);
   } else if (recipient->opponent != NULL) {
     strcpy(message, "The user you asked for is currently in a game.");
     write_client(sender->socket, message);
-  } else if ((invite_from_receiver = get_invite(recipient, sender)) == NULL) {
+  } else if (!strcmp(recipient->username, sender->username)) {
+    strcpy(message, "You cannot challenge yourself");
+    write_client(sender->socket, message);
+  } else if (!has_sent_invite(recipient, sender)) {
     if (add_invite(sender, recipient)) {
       strcpy(message, "You got an invite for a game against ");
       strcat(message, sender->username);
@@ -52,7 +54,9 @@ void send_invite(ActiveClients clients, Client *sender,
     recipient->game = game;
     recipient->opponent = sender;
 
-    remove_invite(recipient, invite_from_receiver);
+    remove_invites_from_client(recipient);
+    remove_invites_from_client(sender);
+
     strcpy(message, "The game against ");
     strcat(message, sender->username);
     strcat(message, " has started.");

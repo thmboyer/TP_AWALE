@@ -45,6 +45,6 @@ Client *find_client_by_username(const ActiveClients, const char *username);
 int add_invite(Client *, Client *);
 void remove_invite(Client *, Invite *);
 void remove_invites_from_client(Client *client);
-Invite *get_invite(const Client *sender, const Client *recipient);
+int has_sent_invite(const Client *sender, const Client *recipient);
 
 #endif
