@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -38,6 +39,15 @@ void remove_client(ActiveClients *clients, Client *client) {
     --clients->nb;
   }
   remove_invites_from_client(client);
+  if (client->opponent) {
+    assert(client->game &&
+           "If a client has an opponent, he should have a game");
+    client->opponent->opponent = NULL;
+    client->opponent->game = NULL;
+    write_client(client->opponent->socket,
+                 "\nYour opponent left, you won the game.");
+    free(client->game);
+  }
   free(client);
 }
 
