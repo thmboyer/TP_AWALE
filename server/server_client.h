@@ -25,5 +25,8 @@ typedef struct ActiveClients {
 
 int add_client(ActiveClients *, Client *);
 void remove_client(ActiveClients *, Client *);
+void write_client(SOCKET sock, const char *buffer);
+void send_message_to_all_clients(ActiveClients clients, Client client,
+                                 const char *buffer, char from_server);
 
 #endif

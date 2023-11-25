@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "commands.h"
 #include "options.h"
 #include "server.h"
 #include "server_client.h"
+#include "server_package.h"
 
-// INFO: See infos for places where the code will have to change because of our
-// data strcture choices
 static void app(void) {
   SOCKET sock = init_connection(); // On récupère le FD de la socket du server.
 
@@ -18,8 +18,8 @@ static void app(void) {
   int max = sock; // The filedescriptor with the highest number, needed for the
                   // select() call
 
-  ActiveClients clients; // INFO: We should not need it since we have a
-                         // linked list with the Clients struct.
+  ActiveClients clients;
+
   clients.first = NULL;
   clients.last = NULL;
   clients.nb = 0;
@@ -65,11 +65,7 @@ static void app(void) {
         continue;
       }
 
-      if (read_client(csock, buffer) ==
-          0) { // WARNING: I think it waits for the client to send his username
-               // but I am not sure. If it is that way, the client app should
-               // require the client to specify his username in execution
-               // command
+      if (read_client(csock, buffer) == 0) {
 
         continue; // He disconnected
       }
@@ -98,18 +94,18 @@ static void app(void) {
         if (FD_ISSET(client_iterator->socket, &rdfs)) {
           int c = read_client(client_iterator->socket, buffer);
           if (c == 0) { // The client disconnected
-            printf("Client disconnected !");
             closesocket(client_iterator->socket);
             remove_client(&clients, client_iterator);
             strncpy(buffer, client_iterator->username, BUF_SIZE - 1);
             strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
             send_message_to_all_clients(clients, *client_iterator, buffer, 1);
           } else { // INFO: This is where we go into handle_incomming_package();
-            send_message_to_all_clients(clients, *client_iterator, buffer, 0);
+            handle_incomming_package(clients, *client_iterator, buffer);
+            // send_message_to_all_clients(clients, *client_iterator, buffer,
+            // 0); write_client(client_iterator->socket, buffer);
           }
           break; // ISSUE: This can cause starvation if the first process keeps
-                 // talking
-                 //  ?
+                 // talking ?
         }
         client_iterator = client_iterator->next;
       }
@@ -128,27 +124,6 @@ static void clear_clients(ActiveClients *clients) {
     Client *previous = client_iterator;
     client_iterator = client_iterator->next;
     free(previous);
-  }
-}
-
-static void send_message_to_all_clients(ActiveClients clients, Client sender,
-                                        const char *buffer, char from_server) {
-  char message[BUF_SIZE];
-  Client *client_iterator = clients.first;
-  while (client_iterator) {
-    message[0] = 0;
-    {
-      /* we don't send message to the sender */
-      if (sender.socket != client_iterator->socket) {
-        if (from_server == 0) {
-          strncpy(message, sender.username, BUF_SIZE - 1);
-          strncat(message, " : ", sizeof message - strlen(message) - 1);
-        }
-        strncat(message, buffer, sizeof message - strlen(message) - 1);
-        write_client(client_iterator->socket, message);
-      }
-    }
-    client_iterator = client_iterator->next;
   }
 }
 
@@ -194,13 +169,6 @@ static int read_client(SOCKET sock, char *buffer) {
   buffer[n] = '\0';
 
   return n;
-}
-
-static void write_client(SOCKET sock, const char *buffer) {
-  if (send(sock, buffer, strlen(buffer), 0) < 0) {
-    perror("send()");
-    exit(errno);
-  }
 }
 
 int main(int argc, char **argv) {
