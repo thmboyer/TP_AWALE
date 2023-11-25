@@ -37,12 +37,7 @@ void remove_client(ActiveClients *clients, Client *client) {
     client->next->previous = client->previous;
     --clients->nb;
   }
-  Invite *invite = client->invites->first;
-  while (invite) {
-    Invite *previous_invite = invite;
-    invite = invite->next;
-    free(previous_invite);
-  }
+  remove_invites_from_client(client);
   free(client);
 }
 
@@ -84,6 +79,16 @@ void remove_invite(Client *client, Invite *invite) {
   Invite *invite_to_remove = it_invite->next;
   it_invite->next = it_invite->next->next;
   free(invite_to_remove);
+}
+
+void remove_invites_from_client(Client *client) {
+  Invite *invite = client->invites->first;
+  while (invite) {
+    Invite *previous_invite = invite;
+    invite = invite->next;
+    free(previous_invite);
+  }
+  client->invites->first = NULL;
 }
 
 Client *find_client_by_username(const ActiveClients clients,

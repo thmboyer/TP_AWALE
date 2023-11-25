@@ -44,5 +44,6 @@ void send_message_to_all_clients(ActiveClients clients, Client client,
 Client *find_client_by_username(const ActiveClients, const char *username);
 int add_invite(Client *, Client *);
 void remove_invite(Client *, Invite *);
+void remove_invites_from_client(Client *client);
 
 #endif
