@@ -42,6 +42,58 @@ void remove_client(ActiveClients *clients, Client *client) {
   }
 }
 
+int add_invite(Client *sender, Client *recipient) {
+  if (sender->invites->first == NULL) {
+    Invite *invite = malloc(sizeof(Invite));
+    sender->invites->first = invite;
+    invite->recipient = recipient;
+    invite->next = NULL;
+    return 1;
+  } else {
+    Invite *it_invite = sender->invites->first;
+    while (it_invite->next != NULL) {
+      if (!strcmp(it_invite->recipient->username, recipient->username)) {
+        return 0;
+      }
+    }
+    if (!strcmp(it_invite->recipient->username, recipient->username)) {
+      return 0;
+    }
+    Invite *invite = malloc(sizeof(Invite));
+    it_invite->next = invite;
+    invite->recipient = recipient;
+    invite->next = NULL;
+    return 1;
+  }
+}
+
+void remove_invite(Client *client, Invite *invite) {
+  Invite *it_invite = client->invites->first;
+  if (it_invite == invite) {
+    client->invites->first = it_invite->next;
+    free(it_invite);
+    return;
+  }
+  while (it_invite->next != invite) {
+    it_invite = it_invite->next;
+  }
+  Invite *invite_to_remove = it_invite->next;
+  it_invite->next = it_invite->next->next;
+  free(invite_to_remove);
+}
+
+Client *find_client_by_username(const ActiveClients clients,
+                                const char *username) {
+  Client *client_iterator = clients.first;
+  while (client_iterator != NULL) {
+    if (!strcmp(client_iterator->username, username)) {
+      break;
+    }
+    client_iterator = client_iterator->next;
+  }
+  return client_iterator;
+}
+
 void send_message_to_all_clients(ActiveClients clients, Client sender,
                                  const char *buffer, char from_server) {
   char message[BUF_SIZE];

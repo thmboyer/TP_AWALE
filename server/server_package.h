@@ -7,7 +7,7 @@ typedef struct ServerPackage {
   char **args;
 } ServerPackage;
 
-void handle_incomming_package(ActiveClients clients, Client client,
-                              char message[200]);
-static ServerPackage parse_incomming_package(char message[200]);
+void handle_incomming_package(const ActiveClients clients, Client *client,
+                              char *message);
+static ServerPackage parse_incomming_package(char *message);
 #endif

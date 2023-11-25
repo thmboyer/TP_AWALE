@@ -13,5 +13,7 @@ typedef struct in_addr IN_ADDR;
 #define CRLF "\r\n"
 #define PORT 7777
 
-#define BUF_SIZE 1024
+#define BUF_SIZE                                                               \
+  1024 // WARNING: Adapt it to the number of client for the get_client_list()
+       // function
 #endif

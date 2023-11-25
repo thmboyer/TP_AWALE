@@ -70,12 +70,15 @@ static void app(void) {
       }
 
       Client *c = malloc(sizeof(Client));
+      Invites *invites = malloc(sizeof(Invites));
       c->socket = csock;
       c->game = NULL;
       c->opponent = NULL;
       c->connected = 0;
       c->next = NULL;
       c->previous = NULL;
+      c->invites = invites;
+      c->invites->first = NULL;
 
       strncpy(c->username, buffer, USERNAME_SIZE);
 
@@ -99,7 +102,7 @@ static void app(void) {
             strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
             send_message_to_all_clients(clients, *client_iterator, buffer, 1);
           } else { // INFO: This is where we go into handle_incomming_package();
-            handle_incomming_package(clients, *client_iterator, buffer);
+            handle_incomming_package(clients, client_iterator, buffer);
             // send_message_to_all_clients(clients, *client_iterator, buffer,
             // 0); write_client(client_iterator->socket, buffer);
           }
@@ -119,6 +122,12 @@ static void clear_clients(ActiveClients *clients) {
   clients->nb = 0;
   Client *client_iterator = clients->first;
   while (client_iterator) {
+    Invite *invite_it = client_iterator->invites->first;
+    while (invite_it) {
+      Invite *previous = invite_it;
+      invite_it = invite_it->next;
+      free(previous);
+    }
     closesocket(client_iterator->socket);
     Client *previous = client_iterator;
     client_iterator = client_iterator->next;

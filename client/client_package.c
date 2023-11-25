@@ -40,15 +40,17 @@ int process(char *buffer) {
         ++it;
       }
       end_of_username = it;
-      if ((end_of_username - beginning_of_username) >= USERNAME_SIZE) {
+      int length_of_username = end_of_username - beginning_of_username;
+      if (length_of_username >= USERNAME_SIZE) {
         puts("Username's length has to be inferior than USERNAME_SIZE");
         return 0;
       }
       strcpy(buffer, "/001 ");
-      char username[end_of_username - beginning_of_username + 1];
-      strncpy(username, beginning_of_username,
-              end_of_username - beginning_of_username);
-      username[end_of_username - beginning_of_username] = '\0';
+      char username[USERNAME_SIZE];
+      strncpy(username, beginning_of_username, length_of_username);
+      for (int i = length_of_username; i < USERNAME_SIZE; ++i) {
+        username[i] = '\0';
+      }
       strcat(buffer, username);
       return 1;
     } else {
