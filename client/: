@@ -30,9 +30,7 @@ static void app(const char *address, const char *name) {
 
     if (FD_ISSET(STDIN_FILENO, &rdfs)) { // If something from the keyboard
       if (fgets(buffer, BUF_SIZE - 1, stdin)) {
-        if (!process(buffer)) {
-          continue;
-        }
+        process(buffer);
       } else {
         break;
       }
@@ -93,10 +91,9 @@ static int read_server(SOCKET sock, char *buffer) {
   return n;
 }
 
-static int process(char *buffer) {
-  char *it = buffer;
+static void process(char *buffer) {
 
-  if (*it++ != '/') {
+  if (buffer[0] != '/') {
     char *p = NULL;
     p = strstr(buffer, "\n"); // looks for \n
     if (p != NULL) {
@@ -104,21 +101,8 @@ static int process(char *buffer) {
     } else {
       buffer[BUF_SIZE - 1] = 0;
     }
-    return 1;
-  } else {
-    char command[6];
-    strncpy(command, it, 5);
-    command[5] = '\0';
-
-    if (!strcmp(command, "users")) {
-      strcpy(buffer, "/000");
-      return 1;
-    } else {
-      puts("Command does not exist");
-      return 0;
-    }
+    return;
   }
-  return 0;
 }
 static void write_server(SOCKET sock, const char *buffer) {
   if (send(sock, buffer, strlen(buffer), 0) < 0) {
