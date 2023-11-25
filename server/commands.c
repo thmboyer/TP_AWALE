@@ -6,6 +6,7 @@
 void get_client_list(ActiveClients clients, char *buffer) {
   Client *client_iterator = clients.first;
   buffer[0] = '\0';
+  strcat(buffer, "Active users:\n");
   while (client_iterator) {
     strcat(buffer, client_iterator->username);
     if (client_iterator != clients.last) {
