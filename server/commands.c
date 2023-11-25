@@ -34,7 +34,6 @@ void send_invite(ActiveClients clients, Client *sender,
       write_client(recipient->socket, message);
       strcpy(message, "Invite sent to ");
       strcat(message, recipient->username);
-      strcat(message, "\n");
       write_client(sender->socket, message);
     } else {
       strcpy(message, "You already sent an invite to this player");

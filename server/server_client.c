@@ -28,18 +28,22 @@ void remove_client(ActiveClients *clients, Client *client) {
   if (clients->first == client) {
     clients->first = clients->first->next;
     --clients->nb;
-    return;
   } else if (clients->last == client) {
     clients->last = clients->last->previous;
     clients->last->next = NULL;
     --clients->nb;
-    return;
   } else {
     client->previous->next = client->next;
     client->next->previous = client->previous;
     --clients->nb;
-    return;
   }
+  Invite *invite = client->invites->first;
+  while (invite) {
+    Invite *previous_invite = invite;
+    invite = invite->next;
+    free(previous_invite);
+  }
+  free(client);
 }
 
 int add_invite(Client *sender, Client *recipient) {

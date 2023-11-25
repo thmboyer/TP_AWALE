@@ -97,10 +97,10 @@ static void app(void) {
           int c = read_client(client_iterator->socket, buffer);
           if (c == 0) { // The client disconnected
             closesocket(client_iterator->socket);
-            remove_client(&clients, client_iterator);
             strncpy(buffer, client_iterator->username, BUF_SIZE - 1);
             strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
             send_message_to_all_clients(clients, *client_iterator, buffer, 1);
+            remove_client(&clients, client_iterator);
           } else { // INFO: This is where we go into handle_incomming_package();
             handle_incomming_package(clients, client_iterator, buffer);
             // send_message_to_all_clients(clients, *client_iterator, buffer,
