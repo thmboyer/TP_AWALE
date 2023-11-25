@@ -1,8 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "../options.h"
 #include "moves.h"
-#include "options.h"
 
 typedef struct Game {
   int board[12];

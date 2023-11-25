@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,8 +12,9 @@ static void app(const char *address, const char *name) {
 
   fd_set rdfs;
 
-  /* send our name */
-  write_server(sock, name);
+  assert(strlen(name) < USERNAME_SIZE && "username length must be <= 10");
+
+  write_server(sock, name); // Sending username to the server
 
   while (1) {
     FD_ZERO(&rdfs);

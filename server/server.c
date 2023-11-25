@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "commands.h"
-#include "options.h"
 #include "server.h"
 #include "server_client.h"
 #include "server_package.h"

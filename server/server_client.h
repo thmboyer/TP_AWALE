@@ -2,7 +2,6 @@
 #define SERVER_CLIENT_H
 
 #include "game.h"
-#include "options.h"
 
 typedef struct Client {
   int socket;
