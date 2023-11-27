@@ -25,6 +25,8 @@ void delete_game(Game * g);
 
 void display_board(Game *g, int player);
 
+char* create_board(Game *g, int player);
+
 void copy_board(int *board1, int *board2);
 
 bool is_in_player_side(int joueur, int case_parcourue);

@@ -28,6 +28,7 @@ struct Client {
                  // we need the password, 2 if connected), should become an enum
   char expected_password[20]; // expected hashed password of client if he is in
                               // the database.
+  int turn;
 };
 
 typedef struct ActiveClients {

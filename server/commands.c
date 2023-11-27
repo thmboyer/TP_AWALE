@@ -1,5 +1,7 @@
 #include "commands.h"
 #include "server_client.h"
+#include "game.h"
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -46,8 +48,8 @@ void send_invite(ActiveClients clients, Client *sender,
       write_client(sender->socket, message);
     }
   } else {
-    Game *game = malloc(sizeof(Game));
-    init_game(sender->username, recipient->username);
+    Game *game = init_game(sender->username, recipient->username);
+    
     sender->opponent = recipient;
     sender->game = game;
     // WARNING: BOTH PLAYERS SHARE THE SAME GAME OBJECT
@@ -59,12 +61,54 @@ void send_invite(ActiveClients clients, Client *sender,
 
     strcpy(message, "The game against ");
     strcat(message, sender->username);
-    strcat(message, " has started.");
+    strcat(message, " has started.\n");
     write_client(recipient->socket, message);
 
     strcpy(message, "The game against ");
     strcat(message, recipient->username);
-    strcat(message, " has started.");
+    strcat(message, " has started.\n");
     write_client(sender->socket, message);
+
+    write_client(sender->socket, create_board(game,1) );
+
+    write_client(recipient->socket, create_board(game,2));
+
+    srand(time(NULL));
+    int first = (rand() % 2) + 1;
+    printf("first: %d\n", first);
+    if(first == 1){
+      write_client(sender->socket, "You start, type /play <pit_num>" );
+      sender->turn = 1;
+
+    } else {
+    write_client(recipient->socket, "You start, type /play <pit_num>" );
+    recipient->turn = 1;
+   }
+
   }
+
+  
+}
+
+void play_game(Client * sender, int num){
+  if(!sender->turn){
+
+    write_client(sender->socket, "It's not your turn." );
+    
+  } else {
+    Game * game = sender->game;
+    int player = (strcmp(sender->username,game->player1)) ? (1) : (2);
+    int opp = (player == 1) ? (2) : (1);
+    make_a_move(game,num,player);
+    sender->turn = 0;
+    sender->opponent->turn = 1;
+
+    write_client(sender->socket, create_board(game,player));
+
+    write_client(sender->opponent->socket, "Opponent's play :\n");
+    write_client(sender->opponent->socket, create_board(game,opp));
+
+
+  }
+
 }

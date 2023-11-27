@@ -29,9 +29,9 @@ Game * init_game(char *username1, char *username2) {
 
     g->score_player1 = 0;
     g->score_player2 = 0;
-    g->rotation = (rand()< 0.5) ? (-1) : (1); 
+    g->rotation = (rand() % 2 == 0) ? (-1) : (1); 
 
-    printf("Rotation way :%d",g->rotation);
+    //printf("Rotation way :%d",g->rotation);
     return g;
 }
 
@@ -66,6 +66,37 @@ void display_board(Game *g, int player) {
         printf(" | %d", g->board[i]);
     }
     printf(" |\n\n");
+}
+
+char* create_board(Game *g, int player) {
+    int idx_row1, idx_row2;
+    char *board_str = (char *)malloc(100 * sizeof(char));
+
+    idx_row1 = PITS_NB / 2 * (2 - player);
+    idx_row2 = PITS_NB / 2 * player - 1;
+
+    //sprintf(board_str, "Player %d's side\nBoard :\n\n", player);
+
+    char buffer[10]; // Taille du buffer selon vos besoins
+
+    for (int i = idx_row1; i < idx_row1 + 6; ++i) {
+        sprintf(buffer, " | %d", g->board[i]);
+        strcat(board_str, buffer);
+    }
+    strcat(board_str, " |\n");
+
+    for (int i = 0; i < PITS_NB / 2; ++i) {
+        strcat(board_str, "-----");
+    }
+    strcat(board_str, "\n");
+
+    for (int i = idx_row2; i > idx_row2 - 6; --i) {
+        sprintf(buffer, " | %d", g->board[i]);
+        strcat(board_str, buffer);
+    }
+    strcat(board_str, " |\n\n");
+
+    return board_str;
 }
 
 void copy_board(int *board1, int *board2){

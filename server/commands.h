@@ -4,5 +4,6 @@
 
 void get_client_list(ActiveClients, Client *, char *);
 void send_invite(ActiveClients, Client *, const char *, char *);
+void play_game(Client *, int);
 
 #endif

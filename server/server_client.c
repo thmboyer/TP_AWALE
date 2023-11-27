@@ -46,7 +46,8 @@ void remove_client(ActiveClients *clients, Client *client) {
     client->opponent->game = NULL;
     write_client(client->opponent->socket,
                  "\nYour opponent left, you won the game.");
-    free(client->game);
+    //free(client->game);
+    delete_game(client->game);
   }
   free(client);
 }
