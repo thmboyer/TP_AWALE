@@ -65,6 +65,9 @@ int process(char *buffer) {
         printf("Expected cmd /plays <pit_num>. \n");
         return 0; // Retourne 0 si le format est invalide
       }
+    } else if (!strcmp(command, "games")) {
+      strcpy(buffer, "/002");
+      return 1;
     } else {
       puts("Command does not exist..");
       return 0;

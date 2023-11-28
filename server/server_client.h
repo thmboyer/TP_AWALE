@@ -47,5 +47,6 @@ int add_invite(Client *, Client *);
 void remove_invite(Client *, Invite *);
 void remove_invites_from_client(Client *client);
 int has_sent_invite(const Client *sender, const Client *recipient);
+int is_in(Client *client, ActiveClients list_of_clients);
 
 #endif

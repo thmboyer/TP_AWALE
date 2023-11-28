@@ -46,7 +46,7 @@ void remove_client(ActiveClients *clients, Client *client) {
     client->opponent->game = NULL;
     write_client(client->opponent->socket,
                  "\nYour opponent left, you won the game.");
-    //free(client->game);
+    // free(client->game);
     delete_game(client->game);
   }
   free(client);
@@ -151,4 +151,15 @@ void write_client(SOCKET sock, const char *buffer) {
     perror("send()");
     exit(errno);
   }
+}
+
+int is_in(Client *client, ActiveClients list_of_clients) {
+  Client *client_iterator = list_of_clients.first;
+  while (client_iterator) {
+    if (!strcmp(client_iterator->username, client->username)) {
+      return 1;
+    }
+    client_iterator = client_iterator->next;
+  }
+  return 0;
 }

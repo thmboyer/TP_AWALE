@@ -1,9 +1,9 @@
 #include "commands.h"
-#include "server_client.h"
 #include "game.h"
-#include <time.h>
+#include "server_client.h"
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 void get_client_list(ActiveClients active_clients, Client *client,
                      char *message) {
@@ -49,7 +49,7 @@ void send_invite(ActiveClients clients, Client *sender,
     }
   } else {
     Game *game = init_game(sender->username, recipient->username);
-    
+
     sender->opponent = recipient;
     sender->game = game;
     // WARNING: BOTH PLAYERS SHARE THE SAME GAME OBJECT
@@ -69,46 +69,66 @@ void send_invite(ActiveClients clients, Client *sender,
     strcat(message, " has started.\n");
     write_client(sender->socket, message);
 
-    write_client(sender->socket, create_board(game,1) );
+    write_client(sender->socket, create_board(game, 1));
 
-    write_client(recipient->socket, create_board(game,2));
+    write_client(recipient->socket, create_board(game, 2));
 
     srand(time(NULL));
     int first = (rand() % 2) + 1;
     printf("first: %d\n", first);
-    if(first == 1){
-      write_client(sender->socket, "You start, type /play <pit_num>" );
+    if (first == 1) {
+      write_client(sender->socket, "You start, type /play <pit_num>");
       sender->turn = 1;
 
     } else {
-    write_client(recipient->socket, "You start, type /play <pit_num>" );
-    recipient->turn = 1;
-   }
-
+      write_client(recipient->socket, "You start, type /play <pit_num>");
+      recipient->turn = 1;
+    }
   }
-
-  
 }
 
-void play_game(Client * sender, int num){
-  if(!sender->turn){
+void play_game(Client *sender, int num) {
+  if (!sender->turn) {
 
-    write_client(sender->socket, "It's not your turn." );
-    
+    write_client(sender->socket, "It's not your turn.");
+
   } else {
-    Game * game = sender->game;
-    int player = (strcmp(sender->username,game->player1)) ? (1) : (2);
+    Game *game = sender->game;
+    int player = (strcmp(sender->username, game->player1)) ? (1) : (2);
     int opp = (player == 1) ? (2) : (1);
-    make_a_move(game,num,player);
+    make_a_move(game, num, player);
     sender->turn = 0;
     sender->opponent->turn = 1;
 
-    write_client(sender->socket, create_board(game,player));
+    write_client(sender->socket, create_board(game, player));
 
     write_client(sender->opponent->socket, "Opponent's play :\n");
-    write_client(sender->opponent->socket, create_board(game,opp));
-
-
+    write_client(sender->opponent->socket, create_board(game, opp));
   }
+}
 
+void get_game_list(ActiveClients clients, Client *client, char *buffer) {
+  Client *client_iterator = clients.first;
+  ActiveClients clients_already_dealt_with;
+  clients_already_dealt_with.first = NULL;
+  clients_already_dealt_with.last = NULL;
+  strcpy(buffer, "List of the games currently going on:");
+  while (client_iterator) {
+    if (client_iterator->game != NULL) {
+      if (!is_in(client_iterator, clients_already_dealt_with)) {
+        add_client(&clients_already_dealt_with, client_iterator);
+        add_client(&clients_already_dealt_with, client_iterator->opponent);
+        strcat(buffer, "\n");
+        strcat(buffer, client_iterator->username);
+        strcat(buffer, " vs ");
+        strcat(buffer, client_iterator->opponent->username);
+      }
+    }
+    client_iterator = client_iterator->next;
+  }
+  if (clients_already_dealt_with.first == NULL) {
+    write_client(client->socket, "No games going on currently");
+  } else {
+    write_client(client->socket, buffer);
+  }
 }

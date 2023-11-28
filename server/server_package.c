@@ -25,11 +25,14 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       strncpy(username, it, USERNAME_SIZE);
       send_invite(clients, client, username, message);
       break;
+    case 2:
+      get_game_list(clients, client, message);
+      break;
     case 3:
       it += 4;
       int num = atoi(it);
-      play_game(client,num);
-      break;  
+      play_game(client, num);
+      break;
     default:
       break;
     }
