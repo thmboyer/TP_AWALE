@@ -47,7 +47,8 @@ void remove_client(ActiveClients *clients, Client *client) {
     write_client(client->opponent->socket,
                  "\nYour opponent left, you won the game.");
     char message_to_observers[200];
-    strcpy(message_to_observers, client->opponent->username);
+    strcpy(message_to_observers, "\n");
+    strcat(message_to_observers, client->opponent->username);
     strcat(message_to_observers, " won the game, his opponent left");
     send_message_to_all_observers(client->opponent->observers,
                                   message_to_observers);

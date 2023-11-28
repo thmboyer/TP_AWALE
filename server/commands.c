@@ -146,10 +146,6 @@ void watch_user(ActiveClients clients, Client *client, char *username,
     strcpy(buffer, username);
     strcat(buffer, " is not connected");
     write_client(client->socket, buffer);
-  } else if (client_to_watch->game == NULL) {
-    strcpy(buffer, username);
-    strcat(buffer, " is not in a game");
-    write_client(client->socket, buffer);
   } else {
     client->watching = client_to_watch;
     Observer *observer = malloc(sizeof(Observer));
@@ -160,7 +156,6 @@ void watch_user(ActiveClients clients, Client *client, char *username,
     add_observer(client_to_watch->observers, observer);
     strcpy(buffer, "you are now watching ");
     strcat(buffer, username);
-    strcat(buffer, " game");
     write_client(client->socket, buffer);
   }
 }
