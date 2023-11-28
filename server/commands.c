@@ -58,6 +58,14 @@ void send_invite(ActiveClients clients, Client *sender,
 
     remove_invites_from_client(recipient);
     remove_invites_from_client(sender);
+    if (recipient->watching) {
+      remove_observer(recipient->watching->observers, recipient);
+      recipient->watching = NULL;
+    }
+    if (sender->watching) {
+      remove_observer(sender->watching->observers, sender);
+      sender->watching = NULL;
+    }
 
     strcpy(message, "The game against ");
     strcat(message, sender->username);
@@ -142,7 +150,11 @@ void watch_user(ActiveClients clients, Client *client, char *username,
                 char *buffer) {
   // printf("Watching user");
   if (!strcmp(client->username, username)) {
-    strcpy(buffer, "You can't watch yourself!\n");
+    if (client->watching) {
+      remove_observer(client->watching->observers, client);
+      client->watching = NULL;
+    }
+    strcpy(buffer, "You are not watching anyone anymore\n");
     write_client(client->socket, buffer);
     return;
   }
