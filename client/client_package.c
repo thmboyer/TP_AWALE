@@ -51,6 +51,9 @@ int process(char *buffer) {
       }
       strcat(buffer, username);
       return 1;
+    } else if (!strcmp(command, "games")) {
+      strcpy(buffer, "/002");
+      return 1;
     } else if (!strcmp(command, "plays")) {
       int num;
       if (sscanf(buffer, "%s %d", command, &num) == 2) {
@@ -65,9 +68,8 @@ int process(char *buffer) {
         printf("Expected cmd /plays <pit_num>. \n");
         return 0; // Retourne 0 si le format est invalide
       }
-    } else if (!strcmp(command, "games")) {
-      strcpy(buffer, "/002");
-      return 1;
+    } else if (!strcmp(command, "watch")) {
+
     } else {
       puts("Command does not exist..");
       return 0;

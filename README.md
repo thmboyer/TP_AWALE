@@ -7,3 +7,9 @@
 - **/games** -> To get the list of all the games going on -> code: **/002**
 - **/plays <pit_number>** -> To make a play -> code: **/003**
 - **/watch <pseudo>** -> To watch the game of a player -> code: **/004 <pseudo(10 chars)>**
+
+[] Concede
+[] Pw or only one per username
+[] Timeout on requests
+[] mute
+[] Persistance
