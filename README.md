@@ -13,3 +13,5 @@
 [] Timeout on requests
 [] mute
 [] Persistance
+[] add (me) next to self
+[] Jouer plusieurs parties à la fois (problématique avec les observers)

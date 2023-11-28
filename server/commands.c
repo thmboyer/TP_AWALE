@@ -77,11 +77,11 @@ void send_invite(ActiveClients clients, Client *sender,
     int first = (rand() % 2) + 1;
     printf("first: %d\n", first);
     if (first == 1) {
-      write_client(sender->socket, "You start, type /play <pit_num>");
+      write_client(sender->socket, "You start, type /plays <pit_num>");
       sender->turn = 1;
 
     } else {
-      write_client(recipient->socket, "You start, type /play <pit_num>");
+      write_client(recipient->socket, "You start, type /plays <pit_num>");
       recipient->turn = 1;
     }
   }
@@ -100,10 +100,15 @@ void play_game(Client *sender, int num) {
     sender->turn = 0;
     sender->opponent->turn = 1;
 
-    write_client(sender->socket, create_board(game, player));
+    char board[200];
+    strcpy(board, create_board(game, player));
+    write_client(sender->socket, board);
+    send_message_to_all_observers(sender->observers, board);
 
-    write_client(sender->opponent->socket, "Opponent's play :\n");
-    write_client(sender->opponent->socket, create_board(game, opp));
+    strcpy(board, "Opponent's play :\n");
+    strcat(board, create_board(game, opp));
+    write_client(sender->opponent->socket, board);
+    send_message_to_all_observers(sender->opponent->observers, board);
   }
 }
 
@@ -129,6 +134,33 @@ void get_game_list(ActiveClients clients, Client *client, char *buffer) {
   if (clients_already_dealt_with.first == NULL) {
     write_client(client->socket, "No games going on currently");
   } else {
+    write_client(client->socket, buffer);
+  }
+}
+
+void watch_user(ActiveClients clients, Client *client, char *username,
+                char *buffer) {
+  // printf("Watching user");
+  Client *client_to_watch = find_client_by_username(clients, username);
+  if (client_to_watch == NULL) {
+    strcpy(buffer, username);
+    strcat(buffer, " is not connected");
+    write_client(client->socket, buffer);
+  } else if (client_to_watch->game == NULL) {
+    strcpy(buffer, username);
+    strcat(buffer, " is not in a game");
+    write_client(client->socket, buffer);
+  } else {
+    client->watching = client_to_watch;
+    Observer *observer = malloc(sizeof(Observer));
+    observer->watcher = client;
+    observer->watched = client_to_watch;
+    observer->previous = NULL;
+    observer->next = NULL;
+    add_observer(client_to_watch->observers, observer);
+    strcpy(buffer, "you are now watching ");
+    strcat(buffer, username);
+    strcat(buffer, " game");
     write_client(client->socket, buffer);
   }
 }

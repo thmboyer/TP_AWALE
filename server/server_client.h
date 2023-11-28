@@ -4,6 +4,19 @@
 #include "game.h"
 
 typedef struct Client Client;
+typedef struct ActiveClients ActiveClients;
+
+typedef struct Observer {
+  struct Observer *next;
+  struct Observer *previous;
+  Client *watcher;
+  Client *watched;
+} Observer;
+
+typedef struct Observers {
+  Observer *first;
+  Observer *last;
+} Observers;
 
 typedef struct Invite {
   Client *recipient;
@@ -23,6 +36,8 @@ struct Client {
   struct Client *opponent;
   struct Client *next;
   struct Client *previous;
+  struct Client *watching;
+  Observers *observers;
   int connected; // To know if the client has entered his password
                  // correctly yet (-1 if disconnected, 0 if new username, 1 if
                  // we need the password, 2 if connected), should become an enum
@@ -39,9 +54,12 @@ typedef struct ActiveClients {
 
 int add_client(ActiveClients *, Client *);
 void remove_client(ActiveClients *, Client *);
+int add_observer(Observers *observers, Observer *observer);
+void remove_observer(Observers *observers, Client *client);
 void write_client(SOCKET sock, const char *buffer);
 void send_message_to_all_clients(ActiveClients clients, Client client,
                                  const char *buffer, char from_server);
+void send_message_to_all_observers(Observers *observers, const char *message);
 Client *find_client_by_username(const ActiveClients, const char *username);
 int add_invite(Client *, Client *);
 void remove_invite(Client *, Invite *);

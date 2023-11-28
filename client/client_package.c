@@ -69,11 +69,34 @@ int process(char *buffer) {
         return 0; // Retourne 0 si le format est invalide
       }
     } else if (!strcmp(command, "watch")) {
-
+      it += 5;
+      if (*(it++) != ' ') {
+        puts("Expected cmd /watch <username>");
+        return 0;
+      }
+      char *beginning_of_username = it;
+      char *end_of_username;
+      while (!isspace(*it)) {
+        ++it;
+      }
+      end_of_username = it;
+      int length_of_username = end_of_username - beginning_of_username;
+      if (length_of_username >= USERNAME_SIZE) {
+        puts("Username's length has to be inferior than USERNAME_SIZE");
+        return 0;
+      }
+      strcpy(buffer, "/004 ");
+      char username[USERNAME_SIZE];
+      strncpy(username, beginning_of_username, length_of_username);
+      for (int i = length_of_username; i < USERNAME_SIZE; ++i) {
+        username[i] = '\0';
+      }
+      strcat(buffer, username);
+      return 1;
     } else {
       puts("Command does not exist..");
       return 0;
     }
+    return 0;
   }
-  return 0;
 }

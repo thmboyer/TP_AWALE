@@ -71,14 +71,19 @@ static void app(void) {
 
       Client *c = malloc(sizeof(Client));
       Invites *invites = malloc(sizeof(Invites));
+      Observers *observers = malloc(sizeof(Observers));
       c->socket = csock;
       c->game = NULL;
       c->opponent = NULL;
       c->connected = 0;
       c->next = NULL;
       c->previous = NULL;
+      c->watching = NULL;
       c->invites = invites;
       c->invites->first = NULL;
+      c->observers = observers;
+      c->observers->first = NULL;
+      c->observers->last = NULL;
 
       strncpy(c->username, buffer, USERNAME_SIZE);
 

@@ -46,10 +46,61 @@ void remove_client(ActiveClients *clients, Client *client) {
     client->opponent->game = NULL;
     write_client(client->opponent->socket,
                  "\nYour opponent left, you won the game.");
+    char message_to_observers[200];
+    strcpy(message_to_observers, client->opponent->username);
+    strcat(message_to_observers, " won the game, his opponent left");
+    send_message_to_all_observers(client->opponent->observers,
+                                  message_to_observers);
     // free(client->game);
     delete_game(client->game);
   }
+  if (client->watching) {
+    remove_observer(client->watching->observers, client);
+  }
+  Observer *observer = client->observers->first;
+  while (observer) {
+    observer->watcher->watching = NULL;
+    observer = observer->next;
+  }
+  free(client->observers);
   free(client);
+}
+
+int add_observer(Observers *observers, Observer *observer) {
+  if (!observers->first) {
+    observers->first = observer;
+    observers->last = observer;
+    return 1;
+  } else {
+    observers->last->next = observer;
+    observer->previous = observers->last;
+    observers->last = observer;
+    return 1;
+  }
+}
+
+void remove_observer(Observers *observers, Client *client) {
+  Observer *observer = observers->first;
+  while (observer) {
+    if (!strcmp(observer->watcher->username, client->username)) {
+      break;
+    }
+    observer = observer->next;
+  }
+  if (!observer) {
+    printf("Client not found in observers\n");
+    return;
+  }
+  if (observers->first == observer) {
+    observers->first = observers->first->next;
+  } else if (observers->last == observer) {
+    observers->last = observers->last->previous;
+    observers->last->next = NULL;
+  } else {
+    observer->previous->next = observer->next;
+    observer->next->previous = observer->previous;
+  }
+  free(observer);
 }
 
 int add_invite(Client *sender, Client *recipient) {
@@ -143,6 +194,14 @@ void send_message_to_all_clients(ActiveClients clients, Client sender,
       }
     }
     client_iterator = client_iterator->next;
+  }
+}
+
+void send_message_to_all_observers(Observers *observers, const char *message) {
+  Observer *observer_iterator = observers->first;
+  while (observer_iterator) {
+    write_client(observer_iterator->watcher->socket, message);
+    observer_iterator = observer_iterator->next;
   }
 }
 

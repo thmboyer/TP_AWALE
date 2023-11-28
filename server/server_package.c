@@ -33,6 +33,12 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       int num = atoi(it);
       play_game(client, num);
       break;
+    case 4:
+      it += 4;
+      char username_to_watch[USERNAME_SIZE];
+      strncpy(username_to_watch, it, USERNAME_SIZE);
+      watch_user(clients, client, username_to_watch, message);
+      break;
     default:
       break;
     }
