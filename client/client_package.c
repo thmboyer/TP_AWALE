@@ -1,7 +1,5 @@
 #include "client_package.h"
-#include <assert.h>
 #include <ctype.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,21 +51,20 @@ int process(char *buffer) {
       }
       strcat(buffer, username);
       return 1;
-    } else if(!strcmp(command, "plays")){
+    } else if (!strcmp(command, "plays")) {
       int num;
       if (sscanf(buffer, "%s %d", command, &num) == 2) {
         if (num >= 1 && num <= 6) {
-            sprintf(buffer, "%s %d", "/003", num);
-            return 1; 
+          sprintf(buffer, "%s %d", "/003", num);
+          return 1;
         } else {
-            printf("The number must be between 1 and 6.\n");
-            return 0;
-        } 
+          printf("The number must be between 1 and 6.\n");
+          return 0;
+        }
       } else {
         printf("Expected cmd /plays <pit_num>. \n");
         return 0; // Retourne 0 si le format est invalide
-    
-    }  
+      }
     } else {
       puts("Command does not exist..");
       return 0;
