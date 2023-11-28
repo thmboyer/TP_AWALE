@@ -152,6 +152,9 @@ void watch_user(ActiveClients clients, Client *client, char *username,
     strcat(buffer, " is not connected");
     write_client(client->socket, buffer);
   } else {
+    if (client->watching) {
+      remove_observer(client->watching->observers, client);
+    }
     client->watching = client_to_watch;
     Observer *observer = malloc(sizeof(Observer));
     observer->watcher = client;
