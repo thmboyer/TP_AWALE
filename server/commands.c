@@ -141,6 +141,11 @@ void get_game_list(ActiveClients clients, Client *client, char *buffer) {
 void watch_user(ActiveClients clients, Client *client, char *username,
                 char *buffer) {
   // printf("Watching user");
+  if (!strcmp(client->username, username)) {
+    strcpy(buffer, "You can't watch yourself!\n");
+    write_client(client->socket, buffer);
+    return;
+  }
   Client *client_to_watch = find_client_by_username(clients, username);
   if (client_to_watch == NULL) {
     strcpy(buffer, username);
