@@ -12,6 +12,9 @@ void get_client_list(ActiveClients active_clients, Client *client,
   strcat(message, "Active users:\n");
   while (client_iterator) {
     strcat(message, client_iterator->username);
+    if(!strcmp(client_iterator->username, client->username)){
+       strcat(message, " (you)");
+    }
     if (client_iterator != active_clients.last) {
       strcat(message, "\n");
     }
@@ -104,19 +107,38 @@ void play_game(Client *sender, int num) {
     Game *game = sender->game;
     int player = (strcmp(sender->username, game->player1)) ? (1) : (2);
     int opp = (player == 1) ? (2) : (1);
-    make_a_move(game, num, player);
-    sender->turn = 0;
-    sender->opponent->turn = 1;
+    int check = make_a_move(game, num, player);
+    if(!check){
 
-    char board[200];
-    strcpy(board, create_board(game, player));
-    write_client(sender->socket, board);
-    send_message_to_all_observers(sender->observers, board);
+      write_client(sender->socket, "Illegal move; you must feed you opponent.\n");
 
-    strcpy(board, "Opponent's play :\n");
-    strcat(board, create_board(game, opp));
-    write_client(sender->opponent->socket, board);
-    send_message_to_all_observers(sender->opponent->observers, board);
+    } else {
+
+      sender->turn = 0;
+      sender->opponent->turn = 1;
+
+      char board[200];
+      strcpy(board, create_board(game, player));
+      write_client(sender->socket, board);
+      send_message_to_all_observers(sender->observers, board);
+
+      strcpy(board, "Opponent's play :\n");
+      strcat(board, create_board(game, opp));
+      write_client(sender->opponent->socket, board);
+      send_message_to_all_observers(sender->opponent->observers, board);
+
+      if(end_of_game_test(game,player)) {
+        write_client(sender->socket, "End of the game.\n");
+        write_client(sender->opponent->socket, "End of the game.\n");
+        send_message_to_all_observers(sender->opponent->observers, "End of the game.\n");
+
+          
+      }
+
+
+
+    }
+    
   }
 }
 
