@@ -8,10 +8,12 @@
 - **/plays <pit_number>** -> To make a play -> code: **/003**
 - **/watch <pseudo>** -> To watch the game of a player -> code: **/004 <pseudo(10 chars)>** (a client can type /watch <own_pseudo> to stop watching a game)
 
+- [ ] bio [ ]
+- [ ] Mode privé avec friendlist
+- [ ] add (me) next to self
 - [ ] Concede
+- [ ] Persistance
 - [ ] Pw or only one per username
 - [ ] Timeout on requests
-- [ ] Persistance
 - [ ] mute
-- [ ] add (me) next to self
 - [ ] Jouer plusieurs parties à la fois (problématique avec les observers)
