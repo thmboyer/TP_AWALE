@@ -6,7 +6,7 @@
 #include "server_package.h"
 
 void handle_incomming_package(const ActiveClients clients, Client *client,
-                              char *message) {
+                              char *message, Games *games, int *current_gm_id) {
   char *it = message;
   if (*(it++) != '/') {
     send_message_to_all_clients(clients, *client, message, 0);
@@ -23,7 +23,7 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       it += 4;
       char username[USERNAME_SIZE];
       strncpy(username, it, USERNAME_SIZE);
-      send_invite(clients, client, username, message);
+      send_invite(clients, client, username, message, current_gm_id);
       break;
     case 2:
       get_game_list(clients, client, message);
@@ -31,7 +31,7 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
     case 3:
       it += 4;
       int num = atoi(it);
-      play_game(client, num);
+      play_game(client, num, games);
       break;
     case 4:
       it += 4;
@@ -61,8 +61,12 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       break;
     case 9:
       toggle_private_mode(client);
+      break;
     case 10:
-      leave_game(client);
+      leave_game(client, games);
+      break;
+    case 11:
+      get_games_history(client,games,message);  
     default:
       break;
     }

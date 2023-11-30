@@ -53,7 +53,7 @@ int process(char *buffer) {
       return 1;
     } else if (!strcmp(command, "games")) {
       strcpy(buffer, "/002");
-      return 1;
+      return 1;   
     } else if (!strcmp(command, "plays")) {
       int num;
       if (sscanf(buffer, "%s %d", command, &num) == 2) {
@@ -177,7 +177,10 @@ int process(char *buffer) {
     } else if (!strcmp(command, "leave")) {
       strcpy(buffer, "/010");
       return 1;
-    } else {
+    } else if(!strcmp(command, "hgame")) {
+      strcpy(buffer, "/011");
+      return 1;  
+    } else  {
       puts("Command does not exist..");
       return 0;
     }

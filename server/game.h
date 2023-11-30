@@ -8,19 +8,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Game {
-  int *board;
-  Moves *moves;
-  char player1[USERNAME_SIZE];
-  char player2[USERNAME_SIZE];
-  int score_player1;
-  int score_player2;
-  int rotation_sens;
-  char winner[10];
-} Game;
+  typedef struct Game {
+    int *board;
+    int game_id;
+    Moves *moves;
+    struct Game *next;
+    struct Game *previous;
+    char player1[USERNAME_SIZE];
+    char player2[USERNAME_SIZE];
+    int score_player1;
+    int score_player2;
+    int rotation_sens;
+    char winner[10];
+  } Game;
 
 //Game * init_game(char *player_a, char *player_b);
-Game * init_game(char *username1, char *username2);
+Game * init_game(char *username1, char *username2, int *game_id);
 
 void display_board(Game *g, int player);
 

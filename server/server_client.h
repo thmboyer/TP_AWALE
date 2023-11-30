@@ -12,6 +12,11 @@ typedef struct Friend {
   Client *friend_of_client;
 } Friend;
 
+typedef struct Games {
+  Game *first;
+  Game *last;
+} Games;
+
 typedef struct FriendList {
   Friend *first;
   Friend *last;

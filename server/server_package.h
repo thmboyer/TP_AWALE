@@ -8,6 +8,6 @@ typedef struct ServerPackage {
 } ServerPackage;
 
 void handle_incomming_package(const ActiveClients clients, Client *client,
-                              char *message);
+                              char *message, Games *games, int *current_gm_id);
 static ServerPackage parse_incomming_package(char *message);
 #endif

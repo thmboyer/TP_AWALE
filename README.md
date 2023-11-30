@@ -15,3 +15,4 @@ All the options such as buffer sizes are written in options.h
 - **/frnds** -> Sends the user its friendlist -> **/008**
 - **/privt** -> Toggles private mode, only users in the FriendList can watch their games -> **/009**
 - **/leave** -> To leave a game, the player leaving will lose. -> **/010**
+- **/hgame** -> To get the list of all the previous games -> code : **/011**

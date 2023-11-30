@@ -7,10 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-Game *init_game(char *username1, char *username2) {
+Game *init_game(char *username1, char *username2, int *current_gm_id) {
   Game *g = (Game *)malloc(sizeof(Game));
   g->board = (int *)malloc(sizeof(int) * PITS_NB);
-
+  g->game_id = *current_gm_id;
+  *current_gm_id = *current_gm_id+1;
   strncpy(g->player1, username1, USERNAME_SIZE - 1);
   g->player1[USERNAME_SIZE - 1] = '\0';
 

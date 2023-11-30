@@ -16,7 +16,7 @@ void get_client_list(ActiveClients active_clients, Client *client,
       strcat(message, " (you)");
     }
     if (client_iterator->priv) {
-      strcat(message, " (private mode)");
+      strcat(message, " (private)");
     }
     if (client_iterator != active_clients.last) {
       strcat(message, "\n");
@@ -26,8 +26,36 @@ void get_client_list(ActiveClients active_clients, Client *client,
   write_client(client->socket, message);
 }
 
+void get_games_history(Client *client, Games *games,
+                     char *message) {
+  Game *game_iterator = games->first;
+  message[0] = '\0';
+  if(!game_iterator){
+    strcat(message, "There is no game in the record, go ahead and challenge a friend !\n");
+  } else {
+    strcat(message, "History of games:\n\n");
+    while (game_iterator) {
+    strcat(message, "- Game_id : ");
+    char intStr[20]; 
+    sprintf(intStr, "%d", game_iterator->game_id);
+    strcat(message, intStr);
+    strcat(message, " ");
+    strcat(message, game_iterator->player1);
+    strcat(message, " vs. ");
+    strcat(message, game_iterator->player2);
+    strcat(message, " and the winner was : ");
+    strcat(message, game_iterator->winner);
+    strcat(message, "\n");
+    game_iterator = game_iterator->next;
+  }
+
+  }
+  
+  write_client(client->socket, message);
+}
+
 void send_invite(ActiveClients clients, Client *sender,
-                 const char *recipient_username, char *message) {
+                 const char *recipient_username, char *message, int *current_gm_id) {
   if (sender->opponent) {
     strcpy(message, "You can't send an invite while in a game");
     write_client(sender->socket, message);
@@ -59,7 +87,7 @@ void send_invite(ActiveClients clients, Client *sender,
       write_client(sender->socket, message);
     }
   } else {
-    Game *game = init_game(sender->username, recipient->username);
+    Game *game = init_game(sender->username, recipient->username,current_gm_id);
 
     sender->opponent = recipient;
     sender->game = game;
@@ -105,7 +133,7 @@ void send_invite(ActiveClients clients, Client *sender,
   }
 }
 
-void play_game(Client *sender, int num) {
+void play_game(Client *sender, int num, Games *games) {
   if (!sender->turn) {
 
     write_client(sender->socket, "It's not your turn.");
@@ -140,6 +168,7 @@ void play_game(Client *sender, int num) {
         write_client(sender->opponent->socket, "End of the game.\n");
         send_message_to_all_observers(sender->opponent->observers,
                                       "End of the game.\n");
+        end_game(sender, games);
       }
     }
   }
@@ -317,7 +346,22 @@ void toggle_private_mode(Client *client) {
     }
 }
 
-void leave_game(Client *client) {
+void end_game(Client * client, Games * games){
+  Game *game = client->game;
+  client->game = NULL;
+  client->opponent->game = NULL;
+  if (!games->first) {
+    games->first = game;
+    games->last = game;
+  } else {
+    games->last->next = game;
+    game->previous = games->last;
+    games->last = game;
+  }
+  game->next = NULL;
+}
+
+void leave_game(Client *client, Games *games) {
   char message[200];
   if (!client->game) {
     strcpy(message, "You are not in a game.");
@@ -326,16 +370,13 @@ void leave_game(Client *client) {
   }
   Game *game = client->game;
   strcpy(game->winner, client->opponent->username);
-
+  end_game(client,games);
   client->opponent->opponent = NULL;
-  client->opponent->game = NULL;
   strcpy(message, "Your opponent left the game, you won.");
   write_client(client->opponent->socket, message);
 
   client->opponent = NULL;
-  client->game = NULL;
   strcpy(message, "You left the game.");
   write_client(client->socket, message);
 
-  free(game);
 }

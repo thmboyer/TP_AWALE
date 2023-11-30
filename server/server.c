@@ -24,6 +24,11 @@ static void app(void) {
   clients.last = NULL;
   clients.nb = 0;
 
+  Games games;
+  games.first = NULL;
+  games.last = NULL;
+  int current_gm_id = 0;
+
   fd_set rdfs; // Set of file descriptors. Before select : all the file
                // descriptors. After select: only the file descriptors that
                // are ready for reading.
@@ -127,7 +132,7 @@ static void app(void) {
             send_message_to_all_clients(clients, *client_iterator, buffer, 1);
             remove_client(&clients, client_iterator);
           } else { // INFO: This is where we go into handle_incomming_package();
-            handle_incomming_package(clients, client_iterator, buffer);
+            handle_incomming_package(clients, client_iterator, buffer, &games, &current_gm_id);
             // send_message_to_all_clients(clients, *client_iterator, buffer,
             // 0); write_client(client_iterator->socket, buffer);
           }
