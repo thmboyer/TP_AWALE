@@ -25,6 +25,11 @@ void get_client_list(ActiveClients active_clients, Client *client,
 
 void send_invite(ActiveClients clients, Client *sender,
                  const char *recipient_username, char *message) {
+  if (sender->opponent) {
+    strcpy(message, "You can't send an invite while in a game");
+    write_client(sender->socket, message);
+    return;
+  }
   Client *recipient = find_client_by_username(clients, recipient_username);
   if (recipient == NULL) {
     strcpy(message, "The user you asked for is not connected.");
@@ -185,7 +190,7 @@ void watch_user(ActiveClients clients, Client *client, char *username,
     write_client(client->socket, buffer);
   } else if (client_to_watch->priv && !friendship(client, client_to_watch)) {
     strcpy(buffer, username);
-    strcat(buffer, " is in private mode and you are not friends with him");
+    strcat(buffer, " is in private mode and you are not friends with them");
     write_client(client->socket, buffer);
   } else {
     if (client->watching) {
@@ -295,7 +300,7 @@ void toggle_private_mode(Client *client) {
     while (observer) {
       if (!friendship(client, observer->watcher)) {
         strcpy(message, client->username);
-        strcat(message, " went private, only his friends can watch him");
+        strcat(message, " went private, only their friends can watch them");
         write_client(observer->watcher->socket, message);
         Observer *temp = observer;
         observer->watcher->watching = NULL;

@@ -307,3 +307,14 @@ int friendship(Client *client1, Client *client2) {
   }
   return 0;
 }
+
+int is_already_used(ActiveClients clients, char *username) {
+  Client *client = clients.first;
+  while (client) {
+    if (!strcmp(client->username, username)) {
+      return 1;
+    }
+    client = client->next;
+  }
+  return 0;
+}

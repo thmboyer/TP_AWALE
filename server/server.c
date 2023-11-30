@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "commands.h"
 #include "server.h"
@@ -69,6 +70,16 @@ static void app(void) {
         continue; // He disconnected
       }
 
+      char username[USERNAME_SIZE];
+      strncpy(username, buffer, USERNAME_SIZE);
+      if (is_already_used(clients, username)) {
+        write_client(
+            csock,
+            "This username is already used, please come back with another one");
+        closesocket(csock);
+        continue;
+      }
+
       Client *c = malloc(sizeof(Client));
       Invites *invites = malloc(sizeof(Invites));
       Invites *friend_requests_sent = malloc(sizeof(Invites));
@@ -93,7 +104,7 @@ static void app(void) {
       c->friends->last = NULL;
       c->priv = 0;
 
-      strncpy(c->username, buffer, USERNAME_SIZE);
+      strcpy(c->username, username);
       strcpy(c->bio, "This user has yet to write his bio.");
 
       if (!add_client(&clients, c)) {

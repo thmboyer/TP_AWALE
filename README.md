@@ -14,3 +14,4 @@ All the options such as buffer sizes are written in options.h
 - **/addfr** <username> -> Sends a friend request to a user -> **/007 <username(USERNAME_SIZE chars)>**
 - **/frnds** -> Sends the user its friendlist -> **/008**
 - **/privt** -> Toggles private mode, only uses in the FriendList can watch their games -> **/009**
+- **/leave** -> To leave a game, the player leaving will lose. -> **/010**
