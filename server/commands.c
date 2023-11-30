@@ -183,6 +183,10 @@ void watch_user(ActiveClients clients, Client *client, char *username,
     strcpy(buffer, username);
     strcat(buffer, " is not connected");
     write_client(client->socket, buffer);
+  } else if (client_to_watch->priv && !friendship(client, client_to_watch)) {
+    strcpy(buffer, username);
+    strcat(buffer, " is in private mode and you are not friends with him");
+    write_client(client->socket, buffer);
   } else {
     if (client->watching) {
       remove_observer(client->watching->observers, client);
