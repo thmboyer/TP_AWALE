@@ -180,6 +180,16 @@ int process(char *buffer) {
     } else if(!strcmp(command, "hgame")) {
       strcpy(buffer, "/011");
       return 1;  
+    } else if(!strcmp(command, "rgame")) {
+      int num;
+      if (sscanf(buffer, "%s %d", command, &num) == 2) {
+          sprintf(buffer, "%s %d", "/012", num);
+          return 1;        
+      } else {
+        printf("Expected cmd /rgame <game_id>. \n");
+        return 0; // Retourne 0 si le format est invalide
+      }
+      return 1;  
     } else  {
       puts("Command does not exist..");
       return 0;

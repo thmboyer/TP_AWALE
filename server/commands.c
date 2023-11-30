@@ -26,34 +26,6 @@ void get_client_list(ActiveClients active_clients, Client *client,
   write_client(client->socket, message);
 }
 
-void get_games_history(Client *client, Games *games,
-                     char *message) {
-  Game *game_iterator = games->first;
-  message[0] = '\0';
-  if(!game_iterator){
-    strcat(message, "There is no game in the record, go ahead and challenge a friend !\n");
-  } else {
-    strcat(message, "History of games:\n\n");
-    while (game_iterator) {
-    strcat(message, "- Game_id : ");
-    char intStr[20]; 
-    sprintf(intStr, "%d", game_iterator->game_id);
-    strcat(message, intStr);
-    strcat(message, " ");
-    strcat(message, game_iterator->player1);
-    strcat(message, " vs. ");
-    strcat(message, game_iterator->player2);
-    strcat(message, " and the winner was : ");
-    strcat(message, game_iterator->winner);
-    strcat(message, "\n");
-    game_iterator = game_iterator->next;
-  }
-
-  }
-  
-  write_client(client->socket, message);
-}
-
 void send_invite(ActiveClients clients, Client *sender,
                  const char *recipient_username, char *message, int *current_gm_id) {
   if (sender->opponent) {
@@ -380,3 +352,57 @@ void leave_game(Client *client, Games *games) {
   write_client(client->socket, message);
 
 }
+
+void get_games_history(Client *client, Games *games,
+                     char *message) {
+  Game *game_iterator = games->first;
+  message[0] = '\0';
+  if(!game_iterator){
+    strcat(message, "There is no game in the record, go ahead and challenge a friend !\n");
+  } else {
+    strcat(message, "History of games:\n\n");
+    while (game_iterator) {
+      strcat(message, "- Game_id : ");
+      char intStr[20]; 
+      sprintf(intStr, "%d", game_iterator->game_id);
+      strcat(message, intStr);
+      strcat(message, " ");
+      strcat(message, game_iterator->player1);
+      strcat(message, " vs. ");
+      strcat(message, game_iterator->player2);
+      strcat(message, " and the winner was : ");
+      strcat(message, game_iterator->winner);
+      strcat(message, "\n");
+      game_iterator = game_iterator->next;
+    }
+
+  }
+  
+  write_client(client->socket, message);
+}
+
+Game * find_game_by_id(Games *games, int game_id) {
+  Game *game_iterator = games->first;
+  while (game_iterator) {
+    if(game_id == game_iterator->game_id){
+      return game_iterator;
+    } 
+    game_iterator = game_iterator->next;
+  }
+  return NULL;
+}
+
+void rewatch_game(Client * client, Games *games,int game_id, char *buffer) {
+  Game *game = find_game_by_id(games,game_id);
+  if(game == NULL){
+    write_client(client->socket, "The game selected is not in the history");
+  } else {
+    char * message = replay_game(game);
+    printf("The game :%s",message);
+    write_client(client->socket, message);
+  }
+  
+
+}
+
+

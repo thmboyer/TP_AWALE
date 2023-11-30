@@ -66,7 +66,14 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       leave_game(client, games);
       break;
     case 11:
-      get_games_history(client,games,message);  
+      get_games_history(client,games,message);
+      break;
+    case 12:
+      char *it = message;
+      char command[6];
+      int game_id;
+      sscanf(it, "%s %d", command, &game_id);
+      rewatch_game(client,games,game_id,message);    
     default:
       break;
     }

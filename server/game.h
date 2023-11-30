@@ -74,5 +74,9 @@ int sum_seeds_left(Game *g, int player);
 
 char * username_by_player(int player);
 
+void add_play_to_moves(Game *g, int player, int selected_pit);
+
+char* replay_game(Game *g);
+
 
 #endif
