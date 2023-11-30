@@ -168,6 +168,7 @@ int add_invite(Invites *invites, Client *recipient) {
       if (!strcmp(it_invite->recipient->username, recipient->username)) {
         return 0;
       }
+      it_invite = it_invite->next;
     }
     if (!strcmp(it_invite->recipient->username, recipient->username)) {
       return 0;
@@ -180,10 +181,10 @@ int add_invite(Invites *invites, Client *recipient) {
   }
 }
 
-void remove_invite(Client *client, Invite *invite) {
-  Invite *it_invite = client->invites->first;
+void remove_invite(Invites *invites, Invite *invite) {
+  Invite *it_invite = invites->first;
   if (it_invite == invite) {
-    client->invites->first = it_invite->next;
+    invites->first = it_invite->next;
     free(it_invite);
     return;
   }
@@ -273,4 +274,19 @@ int is_in(Client *client, ActiveClients list_of_clients) {
     client_iterator = client_iterator->next;
   }
   return 0;
+}
+
+void remove_invite_to_new_friend(Client *client, Client *new_friend_client) {
+  Invite *invite_it = client->friend_requests_sent->first;
+  while (invite_it) {
+    if (!strcmp(invite_it->recipient->username, new_friend_client->username)) {
+      break;
+    }
+    invite_it = invite_it->next;
+  }
+  if (!invite_it) {
+    printf("Invite not found in friendlist, should not be happening\n");
+    return;
+  }
+  remove_invite(client->friend_requests_sent, invite_it);
 }

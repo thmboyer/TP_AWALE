@@ -76,7 +76,8 @@ void send_message_to_all_clients(ActiveClients clients, Client client,
 void send_message_to_all_observers(Observers *observers, const char *message);
 Client *find_client_by_username(const ActiveClients, const char *username);
 int add_invite(Invites *, Client *);
-void remove_invite(Client *, Invite *);
+void remove_invite_to_new_friend(Client *client, Client *new_friend_client);
+void remove_invite(Invites *invites, Invite *);
 void remove_invites_from_client(Client *client);
 int is_in_invites(const Invites *invites, const Client *recipient);
 int is_in(Client *client, ActiveClients list_of_clients);

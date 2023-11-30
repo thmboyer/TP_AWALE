@@ -56,6 +56,9 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       strncpy(username, it, USERNAME_SIZE);
       send_friend_request(clients, client, username);
       break;
+    case 8:
+      send_friend_list(client);
+      break;
     default:
       break;
     }

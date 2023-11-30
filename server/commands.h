@@ -12,5 +12,6 @@ void change_bio(Client *client, char *bio);
 void get_bio(ActiveClients clients, Client *client, char *username);
 void send_friend_request(ActiveClients clients, Client *client,
                          const char *recipient_username);
+void send_friend_list(Client *client);
 
 #endif

@@ -12,3 +12,4 @@ All the options such as buffer sizes are written in options.h
 - **/chbio** <bio> -> To change bio -> code: **/005 <bio(BIO_SIZE chars)>**
 - **/shbio** <username> -> To show the bio of a user -> **/006 <username(USERNAME_SIZE chars)>**
 - **/addfr** <username> -> Sends a friend request to a user -> **/007 <username(USERNAME_SIZE chars)>**
+- **/frnds** -> Sends the user its friendlist -> **/008**

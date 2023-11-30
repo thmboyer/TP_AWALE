@@ -86,7 +86,6 @@ void send_invite(ActiveClients clients, Client *sender,
 
     srand(time(NULL));
     int first = (rand() % 2) + 1;
-    printf("first: %d\n", first);
     if (first == 1) {
       write_client(sender->socket, "You start, type /plays <pit_num>");
       sender->turn = 1;
@@ -166,7 +165,6 @@ void get_game_list(ActiveClients clients, Client *client, char *buffer) {
 
 void watch_user(ActiveClients clients, Client *client, char *username,
                 char *buffer) {
-  // printf("Watching user");
   if (!strcmp(client->username, username)) {
     if (client->watching) {
       remove_observer(client->watching->observers, client);
@@ -210,12 +208,9 @@ void change_bio(Client *client, char *bio) {
 }
 
 void get_bio(ActiveClients clients, Client *client, char *username) {
-  printf("get_bio\n");
   Client *client_to_get_bio_from = find_client_by_username(clients, username);
   if (client_to_get_bio_from) {
-    printf("Writing to client\n");
     write_client(client->socket, client_to_get_bio_from->bio);
-    printf("Wrote to client\n");
   } else {
     char message[200];
     strcpy(message, username);
@@ -262,8 +257,21 @@ void send_friend_request(ActiveClients clients, Client *sender,
     friendship_2->next = NULL;
     friendship_2->friend_of_client = sender;
     add_friend(recipient->friends, friendship_2);
+    remove_invite_to_new_friend(recipient, sender);
     strcpy(message, "You are now friends with ");
     strcat(message, sender->username);
     write_client(recipient->socket, message);
   }
+}
+
+void send_friend_list(Client *client) {
+  char message[1024];
+  strcpy(message, "FriendList:");
+  Friend *friend_it = client->friends->first;
+  while (friend_it) {
+    strcat(message, "\n");
+    strcat(message, friend_it->friend_of_client->username);
+    friend_it = friend_it->next;
+  }
+  write_client(client->socket, message);
 }
