@@ -49,7 +49,7 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       it += 4;
       char username_to_get_bio_from[USERNAME_SIZE];
       strncpy(username_to_get_bio_from, it, USERNAME_SIZE);
-      get_bio(clients, client, username_to_watch);
+      get_bio(clients, client, username_to_get_bio_from);
       break;
     default:
       break;

@@ -30,7 +30,7 @@ typedef struct Invites {
 struct Client {
   int socket;
   char username[USERNAME_SIZE];
-  char bio[160];
+  char bio[BIO_SIZE];
   Game *game;
   Invites *invites;
   struct Client *opponent;

@@ -218,6 +218,9 @@ void get_bio(ActiveClients clients, Client *client, char *username) {
     write_client(client->socket, client_to_get_bio_from->bio);
     printf("Wrote to client\n");
   } else {
-    write_client(client->socket, "The client you asked for was not found.");
+    char message[200];
+    strcpy(message, username);
+    strcat(message, " was not found.");
+    write_client(client->socket, message);
   }
 }

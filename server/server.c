@@ -86,7 +86,7 @@ static void app(void) {
       c->observers->last = NULL;
 
       strncpy(c->username, buffer, USERNAME_SIZE);
-      // strcpy(c->bio, "This user has yet to write his bio.");
+      strcpy(c->bio, "This user has yet to write his bio.");
 
       if (!add_client(&clients, c)) {
         continue;
