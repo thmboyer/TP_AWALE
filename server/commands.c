@@ -35,8 +35,8 @@ void send_invite(ActiveClients clients, Client *sender,
   } else if (!strcmp(recipient->username, sender->username)) {
     strcpy(message, "You cannot challenge yourself");
     write_client(sender->socket, message);
-  } else if (!has_sent_invite(recipient, sender)) {
-    if (add_invite(sender, recipient)) {
+  } else if (!is_in_invites(recipient->invites, sender)) {
+    if (add_invite(sender->invites, recipient)) {
       strcpy(message, "You got an invite for a game against ");
       strcat(message, sender->username);
       strcat(message, " type /fight ");
@@ -192,7 +192,6 @@ void watch_user(ActiveClients clients, Client *client, char *username,
     client->watching = client_to_watch;
     Observer *observer = malloc(sizeof(Observer));
     observer->watcher = client;
-    observer->watched = client_to_watch;
     observer->previous = NULL;
     observer->next = NULL;
     add_observer(client_to_watch->observers, observer);
@@ -222,5 +221,49 @@ void get_bio(ActiveClients clients, Client *client, char *username) {
     strcpy(message, username);
     strcat(message, " was not found.");
     write_client(client->socket, message);
+  }
+}
+
+void send_friend_request(ActiveClients clients, Client *sender,
+                         const char *recipient_username) {
+  Client *recipient = find_client_by_username(clients, recipient_username);
+  char message[500];
+  if (recipient == NULL) {
+    strcpy(message, "The user you asked for is not connected.");
+    write_client(sender->socket, message);
+  } else if (!strcmp(recipient->username, sender->username)) {
+    strcpy(message, "You cannot send a friend request to yourself.");
+    write_client(sender->socket, message);
+  } else if (!is_in_invites(recipient->friend_requests_sent, sender)) {
+    if (add_invite(sender->friend_requests_sent, recipient)) {
+      strcpy(message, "You got a friend request from ");
+      strcat(message, sender->username);
+      strcat(message, " type /addfr ");
+      strcat(message, sender->username);
+      strcat(message, " to accept the request");
+      write_client(recipient->socket, message);
+      strcpy(message, "Friend request sent to ");
+      strcat(message, recipient->username);
+      write_client(sender->socket, message);
+    } else {
+      strcpy(message, "You already sent a friend request to this player");
+      write_client(sender->socket, message);
+    }
+  } else {
+    Friend *friendship_1 = malloc(sizeof(Friend));
+    friendship_1->next = NULL;
+    friendship_1->friend_of_client = recipient;
+    add_friend(sender->friends, friendship_1);
+    strcpy(message, "You are now friends with ");
+    strcat(message, recipient->username);
+    write_client(sender->socket, message);
+
+    Friend *friendship_2 = malloc(sizeof(Friend));
+    friendship_2->next = NULL;
+    friendship_2->friend_of_client = sender;
+    add_friend(recipient->friends, friendship_2);
+    strcpy(message, "You are now friends with ");
+    strcat(message, sender->username);
+    write_client(recipient->socket, message);
   }
 }

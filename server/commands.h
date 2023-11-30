@@ -10,5 +10,7 @@ void watch_user(ActiveClients clients, Client *client, char *username,
                 char *buffer);
 void change_bio(Client *client, char *bio);
 void get_bio(ActiveClients clients, Client *client, char *username);
+void send_friend_request(ActiveClients clients, Client *client,
+                         const char *recipient_username);
 
 #endif

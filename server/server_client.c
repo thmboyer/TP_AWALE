@@ -61,8 +61,22 @@ void remove_client(ActiveClients *clients, Client *client) {
   Observer *observer = client->observers->first;
   while (observer) {
     observer->watcher->watching = NULL;
+    write_client(observer->watcher->socket,
+                 "The client you were watching went offline, you are no longer "
+                 "watching anyone.");
+    Observer *temp = observer;
     observer = observer->next;
+    free(temp);
   }
+  Friend *friend_it = client->friends->first;
+  while (friend_it) {
+    remove_friend(friend_it->friend_of_client->friends, client);
+    Friend *temp = friend_it;
+    friend_it = friend_it->next;
+    free(temp);
+  }
+
+  free(client->friends);
   free(client->observers);
   free(client);
 }
@@ -104,15 +118,52 @@ void remove_observer(Observers *observers, Client *client) {
   free(observer);
 }
 
-int add_invite(Client *sender, Client *recipient) {
-  if (sender->invites->first == NULL) {
+int add_friend(FriendList *friends, Friend *new_friend) {
+  if (!friends->first) {
+    friends->first = new_friend;
+    friends->last = new_friend;
+    return 1;
+  } else {
+    friends->last->next = new_friend;
+    new_friend->previous = friends->last;
+    friends->last = new_friend;
+    return 1;
+  }
+}
+
+void remove_friend(FriendList *friends, Client *client) {
+  Friend *friend_it = friends->first;
+  while (friend_it) {
+    if (!strcmp(friend_it->friend_of_client->username, client->username)) {
+      break;
+    }
+    friend_it = friend_it->next;
+  }
+  if (!friend_it) {
+    printf("Client not found in friendlist\n");
+    return;
+  }
+  if (friends->first == friend_it) {
+    friends->first = friends->first->next;
+  } else if (friends->last == friend_it) {
+    friends->last = friends->last->previous;
+    friends->last->next = NULL;
+  } else {
+    friend_it->previous->next = friend_it->next;
+    friend_it->next->previous = friend_it->previous;
+  }
+  free(friend_it);
+}
+
+int add_invite(Invites *invites, Client *recipient) {
+  if (invites->first == NULL) {
     Invite *invite = malloc(sizeof(Invite));
-    sender->invites->first = invite;
+    invites->first = invite;
     invite->recipient = recipient;
     invite->next = NULL;
     return 1;
   } else {
-    Invite *it_invite = sender->invites->first;
+    Invite *it_invite = invites->first;
     while (it_invite->next != NULL) {
       if (!strcmp(it_invite->recipient->username, recipient->username)) {
         return 0;
@@ -154,8 +205,8 @@ void remove_invites_from_client(Client *client) {
   client->invites->first = NULL;
 }
 
-int has_sent_invite(const Client *sender, const Client *recipient) {
-  Invite *it_invite = sender->invites->first;
+int is_in_invites(const Invites *invites, const Client *recipient) {
+  Invite *it_invite = invites->first;
   while (it_invite) {
     if (!strcmp(it_invite->recipient->username, recipient->username)) {
       return 1;

@@ -51,6 +51,11 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       strncpy(username_to_get_bio_from, it, USERNAME_SIZE);
       get_bio(clients, client, username_to_get_bio_from);
       break;
+    case 7:
+      it += 4;
+      strncpy(username, it, USERNAME_SIZE);
+      send_friend_request(clients, client, username);
+      break;
     default:
       break;
     }

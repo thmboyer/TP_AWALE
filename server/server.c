@@ -71,7 +71,9 @@ static void app(void) {
 
       Client *c = malloc(sizeof(Client));
       Invites *invites = malloc(sizeof(Invites));
+      Invites *friend_requests_sent = malloc(sizeof(Invites));
       Observers *observers = malloc(sizeof(Observers));
+      FriendList *friendList = malloc(sizeof(FriendList));
       c->socket = csock;
       c->game = NULL;
       c->opponent = NULL;
@@ -81,9 +83,14 @@ static void app(void) {
       c->watching = NULL;
       c->invites = invites;
       c->invites->first = NULL;
+      c->friend_requests_sent = friend_requests_sent;
+      c->friend_requests_sent->first = NULL;
       c->observers = observers;
       c->observers->first = NULL;
       c->observers->last = NULL;
+      c->friends = friendList;
+      c->friends->first = NULL;
+      c->friends->last = NULL;
 
       strncpy(c->username, buffer, USERNAME_SIZE);
       strcpy(c->bio, "This user has yet to write his bio.");

@@ -11,3 +11,4 @@ All the options such as buffer sizes are written in options.h
 - **/watch** <username> -> To watch the game of a player -> code: **/004 <username(USERNAME_SIZE chars)>** (a client can type /watch <own_username> to stop watching a game)
 - **/chbio** <bio> -> To change bio -> code: **/005 <bio(BIO_SIZE chars)>**
 - **/shbio** <username> -> To show the bio of a user -> **/006 <username(USERNAME_SIZE chars)>**
+- **/addfr** <username> -> Sends a friend request to a user -> **/007 <username(USERNAME_SIZE chars)>**

@@ -6,11 +6,21 @@
 typedef struct Client Client;
 typedef struct ActiveClients ActiveClients;
 
+typedef struct Friend {
+  struct Friend *next;
+  struct Friend *previous;
+  Client *friend_of_client;
+} Friend;
+
+typedef struct FriendList {
+  Friend *first;
+  Friend *last;
+} FriendList;
+
 typedef struct Observer {
   struct Observer *next;
   struct Observer *previous;
   Client *watcher;
-  Client *watched;
 } Observer;
 
 typedef struct Observers {
@@ -33,11 +43,13 @@ struct Client {
   char bio[BIO_SIZE];
   Game *game;
   Invites *invites;
+  Invites *friend_requests_sent;
   struct Client *opponent;
   struct Client *next;
   struct Client *previous;
   struct Client *watching;
   Observers *observers;
+  FriendList *friends;
   int connected; // To know if the client has entered his password
                  // correctly yet (-1 if disconnected, 0 if new username, 1 if
                  // we need the password, 2 if connected), should become an enum
@@ -56,15 +68,17 @@ int add_client(ActiveClients *, Client *);
 void remove_client(ActiveClients *, Client *);
 int add_observer(Observers *observers, Observer *observer);
 void remove_observer(Observers *observers, Client *client);
+int add_friend(FriendList *friends, Friend *new_friend);
+void remove_friend(FriendList *friends, Client *client);
 void write_client(SOCKET sock, const char *buffer);
 void send_message_to_all_clients(ActiveClients clients, Client client,
                                  const char *buffer, char from_server);
 void send_message_to_all_observers(Observers *observers, const char *message);
 Client *find_client_by_username(const ActiveClients, const char *username);
-int add_invite(Client *, Client *);
+int add_invite(Invites *, Client *);
 void remove_invite(Client *, Invite *);
 void remove_invites_from_client(Client *client);
-int has_sent_invite(const Client *sender, const Client *recipient);
+int is_in_invites(const Invites *invites, const Client *recipient);
 int is_in(Client *client, ActiveClients list_of_clients);
 
 #endif
