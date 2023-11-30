@@ -204,6 +204,12 @@ void remove_invites_from_client(Client *client) {
     free(previous_invite);
   }
   client->invites->first = NULL;
+  invite = client->friend_requests_sent->first;
+  while (invite) {
+    Invite *previous_invite = invite;
+    invite = invite->next;
+    free(previous_invite);
+  }
 }
 
 int is_in_invites(const Invites *invites, const Client *recipient) {
@@ -289,4 +295,15 @@ void remove_invite_to_new_friend(Client *client, Client *new_friend_client) {
     return;
   }
   remove_invite(client->friend_requests_sent, invite_it);
+}
+
+int friendship(Client *client1, Client *client2) {
+  Friend *friend = client1->friends->first;
+  while (friend) {
+    if (!strcmp(friend->friend_of_client->username, client2->username)) {
+      return 1;
+    }
+    friend = friend->next;
+  }
+  return 0;
 }

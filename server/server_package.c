@@ -59,6 +59,8 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
     case 8:
       send_friend_list(client);
       break;
+    case 9:
+      toggle_private_mode(client);
     default:
       break;
     }

@@ -56,6 +56,7 @@ struct Client {
   char expected_password[20]; // expected hashed password of client if he is in
                               // the database.
   int turn;
+  int priv;
 };
 
 typedef struct ActiveClients {
@@ -81,5 +82,6 @@ void remove_invite(Invites *invites, Invite *);
 void remove_invites_from_client(Client *client);
 int is_in_invites(const Invites *invites, const Client *recipient);
 int is_in(Client *client, ActiveClients list_of_clients);
+int friendship(Client *client1, Client *client2);
 
 #endif

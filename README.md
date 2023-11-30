@@ -13,3 +13,4 @@ All the options such as buffer sizes are written in options.h
 - **/shbio** <username> -> To show the bio of a user -> **/006 <username(USERNAME_SIZE chars)>**
 - **/addfr** <username> -> Sends a friend request to a user -> **/007 <username(USERNAME_SIZE chars)>**
 - **/frnds** -> Sends the user its friendlist -> **/008**
+- **/privt** -> Toggles private mode, only uses in the FriendList can watch their games -> **/009**

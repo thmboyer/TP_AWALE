@@ -91,6 +91,7 @@ static void app(void) {
       c->friends = friendList;
       c->friends->first = NULL;
       c->friends->last = NULL;
+      c->priv = 0;
 
       strncpy(c->username, buffer, USERNAME_SIZE);
       strcpy(c->bio, "This user has yet to write his bio.");

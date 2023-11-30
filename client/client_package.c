@@ -171,6 +171,9 @@ int process(char *buffer) {
     } else if (!strcmp(command, "frnds")) {
       strcpy(buffer, "/008");
       return 1;
+    } else if (!strcmp(command, "privt")) {
+      strcpy(buffer, "/009");
+      return 1;
     } else {
       puts("Command does not exist..");
       return 0;

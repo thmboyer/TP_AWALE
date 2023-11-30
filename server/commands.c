@@ -275,3 +275,32 @@ void send_friend_list(Client *client) {
   }
   write_client(client->socket, message);
 }
+
+void toggle_private_mode(Client *client) {
+  client->priv = (client->priv + 1) % 2;
+  char message[200];
+  switch (client->priv) {
+  case 0:
+    strcpy(message, "Private mode off.");
+    write_client(client->socket, message);
+    break;
+  case 1:
+    strcpy(message, "Private mode on.");
+    write_client(client->socket, message);
+    Observer *observer = client->observers->first;
+    while (observer) {
+      if (!friendship(client, observer->watcher)) {
+        strcpy(message, client->username);
+        strcat(message, " went private, only his friends can watch him");
+        write_client(observer->watcher->socket, message);
+        Observer *temp = observer;
+        observer->watcher->watching = NULL;
+        observer = observer->next;
+        remove_observer(client->observers, temp->watcher);
+      } else {
+        observer = observer->next;
+      }
+    }
+    break;
+  }
+}
