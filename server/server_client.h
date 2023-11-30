@@ -83,5 +83,6 @@ void remove_invites_from_client(Client *client);
 int is_in_invites(const Invites *invites, const Client *recipient);
 int is_in(Client *client, ActiveClients list_of_clients);
 int friendship(Client *client1, Client *client2);
+int is_already_used(ActiveClients clients, char *username);
 
 #endif

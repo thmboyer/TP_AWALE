@@ -14,5 +14,6 @@ void send_friend_request(ActiveClients clients, Client *client,
                          const char *recipient_username);
 void send_friend_list(Client *client);
 void toggle_private_mode(Client *client);
+void leave_game(Client *client);
 
 #endif
