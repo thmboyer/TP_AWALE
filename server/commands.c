@@ -15,6 +15,9 @@ void get_client_list(ActiveClients active_clients, Client *client,
     if (!strcmp(client_iterator->username, client->username)) {
       strcat(message, " (you)");
     }
+    if (client_iterator->priv) {
+      strcat(message, " (private mode)");
+    }
     if (client_iterator != active_clients.last) {
       strcat(message, "\n");
     }
@@ -104,7 +107,7 @@ void play_game(Client *sender, int num) {
 
   } else {
     Game *game = sender->game;
-    int player = (strcmp(sender->username, game->player1)) ? (1) : (2);
+    int player = (!strcmp(sender->username, game->player1)) ? (1) : (2);
     int opp = (player == 1) ? (2) : (1);
     int check = make_a_move(game, num, player);
     if (!check) {
@@ -306,5 +309,5 @@ void toggle_private_mode(Client *client) {
       }
     }
     break;
-  }
+    }
 }
