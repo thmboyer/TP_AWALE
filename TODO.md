@@ -7,7 +7,8 @@ Requirements:
 - [x] Multiple games at once and observers
 - [x] Chat
 - [x] Bio
-- [ ] Private mode with friendlist
+- [x] Private mode with friendlist
+- [ ] Username has to be unique
 - [ ] Concede
 - [ ] Saving games
 
