@@ -39,6 +39,18 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       strncpy(username_to_watch, it, USERNAME_SIZE);
       watch_user(clients, client, username_to_watch, message);
       break;
+    case 5:
+      it += 4;
+      char bio[BIO_SIZE];
+      strncpy(bio, it, BIO_SIZE);
+      change_bio(client, bio);
+      break;
+    case 6:
+      it += 4;
+      char username_to_get_bio_from[USERNAME_SIZE];
+      strncpy(username_to_get_bio_from, it, USERNAME_SIZE);
+      get_bio(clients, client, username_to_watch);
+      break;
     default:
       break;
     }

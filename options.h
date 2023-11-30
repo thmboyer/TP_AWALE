@@ -1,6 +1,7 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 #define USERNAME_SIZE 11
+#define BIO_SIZE 160
 #define MAX_CLIENTS 25
 #define INVALID_SOCKET -1
 #define SOCKET_ERROR -1

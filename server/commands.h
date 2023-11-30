@@ -8,5 +8,7 @@ void play_game(Client *, int);
 void get_game_list(ActiveClients clients, Client *client, char *buffer);
 void watch_user(ActiveClients clients, Client *client, char *username,
                 char *buffer);
+void change_bio(Client *client, char *bio);
+void get_bio(ActiveClients clients, Client *client, char *username);
 
 #endif

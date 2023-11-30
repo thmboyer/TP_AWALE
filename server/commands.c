@@ -201,3 +201,23 @@ void watch_user(ActiveClients clients, Client *client, char *username,
     write_client(client->socket, buffer);
   }
 }
+
+void change_bio(Client *client, char *bio) {
+  strcpy(client->bio, bio);
+  char message[200];
+  strcpy(message, "Your bio was changed to: ");
+  strcat(message, client->bio);
+  write_client(client->socket, message);
+}
+
+void get_bio(ActiveClients clients, Client *client, char *username) {
+  printf("get_bio\n");
+  Client *client_to_get_bio_from = find_client_by_username(clients, username);
+  if (client_to_get_bio_from) {
+    printf("Writing to client\n");
+    write_client(client->socket, client_to_get_bio_from->bio);
+    printf("Wrote to client\n");
+  } else {
+    write_client(client->socket, "The client you asked for was not found.");
+  }
+}
