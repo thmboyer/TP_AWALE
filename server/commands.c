@@ -12,8 +12,8 @@ void get_client_list(ActiveClients active_clients, Client *client,
   strcat(message, "Active users:\n");
   while (client_iterator) {
     strcat(message, client_iterator->username);
-    if(!strcmp(client_iterator->username, client->username)){
-       strcat(message, " (you)");
+    if (!strcmp(client_iterator->username, client->username)) {
+      strcat(message, " (you)");
     }
     if (client_iterator != active_clients.last) {
       strcat(message, "\n");
@@ -108,9 +108,10 @@ void play_game(Client *sender, int num) {
     int player = (strcmp(sender->username, game->player1)) ? (1) : (2);
     int opp = (player == 1) ? (2) : (1);
     int check = make_a_move(game, num, player);
-    if(!check){
+    if (!check) {
 
-      write_client(sender->socket, "Illegal move; you must feed you opponent.\n");
+      write_client(sender->socket,
+                   "Illegal move; you must feed you opponent.\n");
 
     } else {
 
@@ -127,18 +128,13 @@ void play_game(Client *sender, int num) {
       write_client(sender->opponent->socket, board);
       send_message_to_all_observers(sender->opponent->observers, board);
 
-      if(end_of_game_test(game,player)) {
+      if (end_of_game_test(game, player)) {
         write_client(sender->socket, "End of the game.\n");
         write_client(sender->opponent->socket, "End of the game.\n");
-        send_message_to_all_observers(sender->opponent->observers, "End of the game.\n");
-
-          
+        send_message_to_all_observers(sender->opponent->observers,
+                                      "End of the game.\n");
       }
-
-
-
     }
-    
   }
 }
 
@@ -176,7 +172,11 @@ void watch_user(ActiveClients clients, Client *client, char *username,
       remove_observer(client->watching->observers, client);
       client->watching = NULL;
     }
-    strcpy(buffer, "You are not watching anyone anymore\n");
+    strcpy(buffer, "You are not watching anyone anymore");
+    write_client(client->socket, buffer);
+    return;
+  } else if (client->game) {
+    strcpy(buffer, "You can't watch someone while you're in a game");
     write_client(client->socket, buffer);
     return;
   }
