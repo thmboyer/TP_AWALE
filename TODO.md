@@ -10,7 +10,7 @@ Requirements:
 - [x] Private mode with friendlist
 - [x] Username has to be unique
 - [x] Concede
-- [ ] Saving games
+- [x] Saving games
 
 Bonus:
 - [ ] Persistence
