@@ -174,6 +174,9 @@ int process(char *buffer) {
     } else if (!strcmp(command, "privt")) {
       strcpy(buffer, "/009");
       return 1;
+    } else if (!strcmp(command, "leave")) {
+      strcpy(buffer, "/010");
+      return 1;
     } else {
       puts("Command does not exist..");
       return 0;

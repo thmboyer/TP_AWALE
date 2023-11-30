@@ -61,6 +61,8 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       break;
     case 9:
       toggle_private_mode(client);
+    case 10:
+      leave_game(client);
     default:
       break;
     }

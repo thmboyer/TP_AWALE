@@ -313,3 +313,26 @@ void toggle_private_mode(Client *client) {
     break;
   }
 }
+
+void leave_game(Client *client) {
+  char message[200];
+  if (!client->game) {
+    strcpy(message, "You are not in a game.");
+    write_client(client->socket, message);
+    return;
+  }
+  Game *game = client->game;
+  strcpy(game->winner, client->opponent->username);
+
+  client->opponent->opponent = NULL;
+  client->opponent->game = NULL;
+  strcpy(message, "Your opponent left the game, you won.");
+  write_client(client->opponent->socket, message);
+
+  client->opponent = NULL;
+  client->game = NULL;
+  strcpy(message, "You left the game.");
+  write_client(client->socket, message);
+
+  free(game);
+}

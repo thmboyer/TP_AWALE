@@ -8,8 +8,8 @@ Requirements:
 - [x] Chat
 - [x] Bio
 - [x] Private mode with friendlist
-- [ ] Username has to be unique
-- [ ] Concede
+- [x] Username has to be unique
+- [x] Concede
 - [ ] Saving games
 
 Bonus:
