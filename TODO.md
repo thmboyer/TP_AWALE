@@ -14,7 +14,7 @@ Requirements:
 
 Bonus:
 - [ ] Persistence
-- [ ] Pw or only one per username
+- [ ] Pw
 - [ ] Timeout on requests
-- [ ] mute
-- [ ] Multiple games at once for a user (problematic with observers)
+- [ ] Mute
+- [ ] Colors
