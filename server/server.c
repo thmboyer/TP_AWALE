@@ -130,9 +130,20 @@ static void app(void) {
             strncpy(buffer, client_iterator->username, BUF_SIZE - 1);
             strncat(buffer, " disconnected !", BUF_SIZE - strlen(buffer) - 1);
             send_message_to_all_clients(clients, *client_iterator, buffer, 1);
+
+            // FIX: Move this
+            if (client_iterator->game) {
+              strcpy(client_iterator->game->winner,
+                     client_iterator->opponent->username);
+              end_game(client_iterator, &games);
+              client_iterator->opponent->opponent = NULL;
+              client_iterator->opponent = NULL;
+            }
+
             remove_client(&clients, client_iterator);
           } else { // INFO: This is where we go into handle_incomming_package();
-            handle_incomming_package(clients, client_iterator, buffer, &games, &current_gm_id);
+            handle_incomming_package(clients, client_iterator, buffer, &games,
+                                     &current_gm_id);
             // send_message_to_all_clients(clients, *client_iterator, buffer,
             // 0); write_client(client_iterator->socket, buffer);
           }
