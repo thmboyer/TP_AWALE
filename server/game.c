@@ -366,6 +366,9 @@ char* replay_game(Game *g){
         strcat(board_display,create_board(game,pov));
         current = current->next;
     }
+    strcat(board_display,"\n\nThw winner is :");
+    strcat(board_display,g->winner);
+    strcat(board_display,"\n\n");
     return board_display;
 }
 
