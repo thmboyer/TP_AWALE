@@ -122,7 +122,12 @@ void play_game(Client *sender, int num, Games *games) {
       write_client(sender->socket,
                    "Illegal move; you must feed you opponent.\n");
 
-    } else {
+    } if (check == -1) {
+
+      write_client(sender->socket,
+                   "Illegal move; you must choose a pit with seeds.\n");
+
+      }else {
 
       sender->turn = 0;
       sender->opponent->turn = 1;
