@@ -357,6 +357,22 @@ void leave_game(Client *client, Games *games) {
     write_client(client->socket, message);
     return;
   }
+
+  strcpy(message, client->username);
+  strcat(message, " left the game, ");
+  strcat(message, client->opponent->username);
+  strcat(message, " won.");
+  Observer *observer = client->observers->first;
+  while (observer) {
+    write_client(observer->watcher->socket, message);
+    observer = observer->next;
+  }
+  observer = client->opponent->observers->first;
+  while (observer) {
+    write_client(observer->watcher->socket, message);
+    observer = observer->next;
+  }
+
   Game *game = client->game;
   strcpy(game->winner, client->opponent->username);
   end_game(client, games);
@@ -414,7 +430,6 @@ void rewatch_game(Client *client, Games *games, int game_id, char *buffer) {
     write_client(client->socket, "The game selected is not in the history");
   } else {
     char *message = replay_game(game);
-    printf("The game :%s", message);
     write_client(client->socket, message);
   }
 }
