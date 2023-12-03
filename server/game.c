@@ -29,7 +29,7 @@ Game *init_game(char *username1, char *username2, int *current_gm_id) {
 
   g->score_player1 = 0;
   g->score_player2 = 0;
-  // g->rotation_sens = (rand()< 0.5) ? (-1) : (1);
+
   g->rotation_sens = -1;
 
   return g;
@@ -50,8 +50,7 @@ char *create_board(Game *g, int player) {
     name = g->player2;
   }
 
-  char *board_display = (char *)malloc(200 * sizeof(char)); // Taille arbitraire
-
+  char *board_display = (char *)malloc(200 * sizeof(char)); 
   sprintf(board_display, "%s's side\n\n", opp);
 
   for (int i = idx_row1; i < idx_row1 + 6; ++i) {
@@ -146,18 +145,13 @@ int make_a_move(Game *g, int selected_pit, int player) {
   tmp_board2 = (int *)malloc(PITS_NB * sizeof(int));
   copy_board(g->board, tmp_board2);
 
-  if (selected_pit > 6 || selected_pit < 1) {
-    printf("Case choisie non valide\n");
-    return 0;
-  }
-
   starting_pit = (PITS_NB / 2 * player) - selected_pit;
   visited_pit = starting_pit;
 
   seed_nbs = g->board[visited_pit];
   g->board[visited_pit] = 0;
 
-  // printf("case sélec : %d | nb pions = %d\n", visited_pit, seed_nbs);
+
   if(!seed_nbs) {
 
     return -1;
@@ -178,15 +172,14 @@ int make_a_move(Game *g, int selected_pit, int player) {
       continue;
     }
 
-    // printf("case sélec : %d | nb pions = %d\n", visited_pit,
-    // g->board[visited_pit]);
+
 
     g->board[visited_pit] = g->board[visited_pit] + 1;
     seed_nbs--;
   }
 
   if (!have_a_seed(g, opp)) {
-    // printf("Illegal move; you must feed you opponent.\n");
+    
     copy_board(tmp_board2, g->board);
     return 0;
   }
@@ -194,7 +187,7 @@ int make_a_move(Game *g, int selected_pit, int player) {
   tmp_board = (int *)malloc(PITS_NB * sizeof(int));
   copy_board(g->board, tmp_board);
 
-  // display_board(g, 1);
+
 
   while (!is_in_player_side(player, visited_pit) &&
          (g->board[visited_pit] == 2 || g->board[visited_pit] == 3)) {
@@ -246,7 +239,7 @@ bool can_feed(Game *g, int player) {
   return (visited_pit == PITS_NB / 2 * player) ? false : true;
 }
 
-int nbCasesDansLeCamp(int selected_pit, int player, Game *game) {
+int nb_of_pits(int selected_pit, int player, Game *game) {
   if (game->rotation_sens == 1) {
     return (PITS_NB / 2 * (player)-selected_pit);
   } else {
@@ -264,7 +257,7 @@ bool force_feed(Game *game, int *play, int *indexPlay, int player) {
   *indexPlay = 0;
   while (visited_pit < PITS_NB / 2 * (player)) {
     if (game->board[visited_pit] <
-        nbCasesDansLeCamp(visited_pit, player, game)) {
+        nb_of_pits(visited_pit, player, game)) {
       play[*indexPlay] = visited_pit % (PITS_NB / 2);
       (*indexPlay)++;
     }
@@ -303,21 +296,6 @@ int end_of_game_test(Game *g, int player) {
   return 0;
 }
 
-void make_famine(Game *g, int player) {
-  int deb;
-  int fin;
-  if (player == 1) {
-    deb = 0;
-    fin = 5;
-  } else {
-    deb = 6;
-    fin = 11;
-  }
-  for (int i = deb; i <= fin; i++) {
-    g->board[i] = 0;
-  }
-  display_board(g, player);
-}
 
 int sum_seeds_left(Game *g, int player) {
   int start;
@@ -385,15 +363,12 @@ void parseGameToCSV(Game *game, const char *filename) {
         return;
     }
 
-    // Écrire l'en-tête du fichier CSV
-    //fprintf(file, "game_id,player1,player2,score_player1,score_player2,winner,moves\n");
-
-    // Écrire les détails de la partie dans le fichier CSV
+    
     fprintf(file, "%d,%s,%s,%d,%d,%d,%s\n",
             game->game_id, game->player1, game->player2,
             game->score_player1, game->score_player2, game->rotation_sens,game->winner);
 
-    // Parcourir les mouvements et les écrire dans le fichier CSV
+   
     Moves *movesList = game->moves;
     if (movesList != NULL) {
         Move *currentMove = movesList->first;
@@ -438,7 +413,7 @@ Game* parseCSVToGame(FILE *file) {
     newGame->moves->size = 0;
     char player[USERNAME_SIZE];
     int play;
-    // printf("buffer scan : %s\n",buffer);
+    
      while (strcmp(fgets(buffer, sizeof(buffer), file),"end")) {
       if(strstr(buffer,"end")){
         break;
@@ -456,7 +431,7 @@ Game* parseCSVToGame(FILE *file) {
 
 void delete_game(Game *g) {
   free(g->board);
-  //free(g->moves->move);
+
   free(g->moves);
   free(g);
 }
