@@ -8,6 +8,9 @@
 void handle_incomming_package(const ActiveClients clients, Client *client,
                               char *message, Games *games, int *current_gm_id) {
   char *it = message;
+  char *it2 = message;
+  char command2[6];
+  int game_id;
   if (*(it++) != '/') {
     send_message_to_all_clients(clients, *client, message, 0);
   } else {
@@ -69,10 +72,7 @@ void handle_incomming_package(const ActiveClients clients, Client *client,
       get_games_history(client,games,message);
       break;
     case 12:
-      char *it = message;
-      char command[6];
-      int game_id;
-      sscanf(it, "%s %d", command, &game_id);
+      sscanf(it2, "%s %d", command2, &game_id);
       rewatch_game(client,games,game_id,message);    
     default:
       break;

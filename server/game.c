@@ -158,6 +158,12 @@ int make_a_move(Game *g, int selected_pit, int player) {
   g->board[visited_pit] = 0;
 
   // printf("case sélec : %d | nb pions = %d\n", visited_pit, seed_nbs);
+  if(!seed_nbs) {
+
+    return -1;
+
+  }
+
 
   while (seed_nbs > 0) {
     visited_pit = (visited_pit + g->rotation_sens) % 12;
@@ -366,6 +372,9 @@ char* replay_game(Game *g){
         strcat(board_display,create_board(game,pov));
         current = current->next;
     }
+    strcat(board_display,"\n\nThw winner is :");
+    strcat(board_display,g->winner);
+    strcat(board_display,"\n\n");
     return board_display;
 }
 
