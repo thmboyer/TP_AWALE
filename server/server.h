@@ -15,5 +15,7 @@ static int init_connection(void);
 static void end_connection(int sock);
 static int read_client(SOCKET sock, char *buffer);
 static void clear_clients(ActiveClients *);
+void load_games(Games *games);
+int get_last_id(Games *games);
 
 #endif /* guard */

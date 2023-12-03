@@ -322,6 +322,7 @@ void end_game(Client * client, Games * games){
   Game *game = client->game;
   client->game = NULL;
   client->opponent->game = NULL;
+  parseGameToCSV(game, "../game_data.csv");
   if (!games->first) {
     games->first = game;
     games->last = game;

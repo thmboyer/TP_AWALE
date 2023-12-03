@@ -27,8 +27,9 @@ static void app(void) {
   Games games;
   games.first = NULL;
   games.last = NULL;
-  int current_gm_id = 0;
-
+  load_games(&games);
+  int current_gm_id = get_last_id(&games);
+ // int current_gm_id = 0;
   fd_set rdfs; // Set of file descriptors. Before select : all the file
                // descriptors. After select: only the file descriptors that
                // are ready for reading.
@@ -207,6 +208,49 @@ static int read_client(SOCKET sock, char *buffer) {
   buffer[n] = '\0';
 
   return n;
+}
+
+void load_games(Games * games){
+  FILE *file = fopen("../game_data.csv", "r");
+ 
+  fseek(file, 0, SEEK_END);
+  //checking if the file is empty
+  long taille = ftell(file);
+    if (taille == 0) {
+        return;
+    }
+  fseek(file, 0, SEEK_SET);
+  while(!feof(file)){
+        Game * game = parseCSVToGame(file);
+        if(game == NULL){
+          break;
+        }
+        if (!games->first) {
+          games->first = game;
+          games->last = game;
+        } else {
+          games->last->next = game;
+          game->previous = games->last;
+          games->last = game;
+        }
+          game->next = NULL;
+      }
+}
+
+int get_last_id(Games * games){
+  if(games->first == NULL){
+    return 0;
+  }
+  int id = 0;
+  Game * current = games->first;
+  while(current != NULL){
+    if(current->game_id > id){
+      id = current->game_id;
+    }
+    current = current->next;
+  }
+  id++;
+  return id;
 }
 
 int main(int argc, char **argv) {

@@ -78,5 +78,9 @@ void add_play_to_moves(Game *g, int player, int selected_pit);
 
 char* replay_game(Game *g);
 
+void parseGameToCSV(Game *game, const char *filename);
+
+Game* parseCSVToGame(FILE *file);
+
 
 #endif

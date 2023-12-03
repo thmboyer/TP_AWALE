@@ -370,19 +370,19 @@ char* replay_game(Game *g){
 }
 
 void parseGameToCSV(Game *game, const char *filename) {
-    FILE *file = fopen(filename, "w");
+    FILE *file = fopen(filename, "a");
     if (file == NULL) {
         printf("Erreur lors de l'ouverture du fichier.\n");
         return;
     }
 
     // Écrire l'en-tête du fichier CSV
-    fprintf(file, "game_id,player1,player2,score_player1,score_player2,winner,moves\n");
+    //fprintf(file, "game_id,player1,player2,score_player1,score_player2,winner,moves\n");
 
     // Écrire les détails de la partie dans le fichier CSV
-    fprintf(file, "%d,%s,%s,%d,%d,%s\n",
+    fprintf(file, "%d,%s,%s,%d,%d,%d,%s\n",
             game->game_id, game->player1, game->player2,
-            game->score_player1, game->score_player2, game->winner);
+            game->score_player1, game->score_player2, game->rotation_sens,game->winner);
 
     // Parcourir les mouvements et les écrire dans le fichier CSV
     Moves *movesList = game->moves;
@@ -394,71 +394,56 @@ void parseGameToCSV(Game *game, const char *filename) {
             movesList->size++;
         }
     }
-
+    fprintf(file,"%s\n","end");
     fclose(file);
 }
 
-Game* parseCSVToGame(const char *filename) {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
+Game* parseCSVToGame(FILE *file) {
+        if (file == NULL) {
         printf("Erreur lors de l'ouverture du fichier.\n");
         return NULL;
     }
-
     Game *newGame = (Game*)malloc(sizeof(Game));
     if (newGame == NULL) {
         printf("Erreur d'allocation de mémoire pour Game.\n");
         fclose(file);
         return NULL;
     }
-
-    // Lire l'en-tête du fichier CSV pour ignorer les noms de colonnes
     char buffer[1024];
     fgets(buffer, sizeof(buffer), file);
-
-    // Lire les détails de la partie depuis le fichier CSV
-    fscanf(file, "%d,%s,%s,%d,%d,%s\n", &newGame->game_id, newGame->player1,newGame->player2,&newGame->score_player1,&newGame->score_player2,newGame->winner);
-
-    // Initialisez le reste des champs de la structure Game
-    // ... initialisez les autres champs ...
-
-    // Initialisez la liste de mouvements
-    Moves *movesList = (Moves*)malloc(sizeof(Moves));
-    if (movesList == NULL) {
-        printf("Erreur d'allocation de mémoire pour Moves.\n");
-        free(newGame);
-        fclose(file);
-        return NULL;
+   
+    if(strstr(buffer,"end") ){
+       fgets(buffer, sizeof(buffer), file);
+      }
+    if(!strcmp(buffer,"\n") || feof(file)){
+      return NULL;
     }
-
-    movesList->first = NULL;
-    movesList->size = 0;
-    movesList->last = NULL;
-
-    int player;
+    
+    sscanf(buffer, "%d,%[^,],%[^,],%d,%d,%d,%s\n",
+           &newGame->game_id, newGame->player1,newGame->player2,
+           &newGame->score_player1, &newGame->score_player2, &newGame->rotation_sens, newGame->winner);
+    
+    newGame->moves = (Moves *)malloc(sizeof(Moves));
+    newGame->moves->first = NULL;
+    newGame->moves->last = NULL;
+    newGame->moves->size = 0;
+    char player[USERNAME_SIZE];
     int play;
-
-    // Lire les mouvements depuis le fichier CSV
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        Move *newMove = (Move*)malloc(sizeof(Move));
-        if (newMove == NULL) {
-            printf("Erreur d'allocation de mémoire pour Move.\n");
-            // Libérer la mémoire allouée jusqu'à présent
-            // ...
-
-            fclose(file);
-            return NULL;
+    // printf("buffer scan : %s\n",buffer);
+     while (strcmp(fgets(buffer, sizeof(buffer), file),"end")) {
+      if(strstr(buffer,"end")){
+        break;
+      }
+        sscanf(buffer, "%[^,],%d\n", player, &play);
+        if(!strcmp(newGame->player1,player)){
+          add_play_to_moves(newGame,1,play);
+        } else if(!strcmp(newGame->player2,player)){
+          add_play_to_moves(newGame,2,play);
         }
-
-        sscanf(buffer, "%d,%d\n", &player, &play);
-        add_play_to_moves(newGame,player,play);
-        // Ajouter le nouveau mouvement à la liste
-        // ... Ajouter le mouvement à la liste ...
     }
-
-    fclose(file);
+    
     return newGame;
-}
+} 
 
 void delete_game(Game *g) {
   free(g->board);
