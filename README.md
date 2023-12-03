@@ -1,7 +1,9 @@
 # TP_AWALE
 **Basic client/server application for the Awale game**
 
-All the options such as buffer sizes are written in options.h
+## Compile & Run:
+- To compile the client, go to the client directory and run make to compile the source code. To run the client, execute the prog.out file in the bin/ directory: bin/prog.out <server_ipv4_address> <username>
+- To compile the server, go to the server directory and run make to compile the source code. To run the server, execute the prog.out file in the bin/ directory: bin/prog.out
 
 ## User Commands:
 - **/users** -> To get the list of users connected on the server -> code: **/000**
